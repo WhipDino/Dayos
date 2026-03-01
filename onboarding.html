@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#FAF8F5">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <title>DayOS — Conectar Ferramentas</title>
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@latest/dist/dotlottie-wc.js" type="module"></script>
+    <style>
+        :root {
+            --bg: #FAF8F5;
+            --bg-input: #F2F0ED;
+            --accent: #F4A76C;
+            --accent-hover: #E8955A;
+            --text-primary: #2D2D2D;
+            --text-tertiary: #8A8A8E;
+            --text-placeholder: #AEAEB2;
+            --border-light: #E8E6E3;
+            --white: #FFFFFF;
+
+            --font-display: -apple-system, 'SF Pro Display', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+            --font-text: -apple-system, 'SF Pro Text', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-text);
+            background-color: var(--bg);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+
+        /* ── Layout ── */
+        .screen {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            padding: calc(var(--safe-top) + 8px) 24px calc(var(--safe-bottom) + 16px);
+            overflow: hidden;
+            position: fixed;
+            inset: 0;
+        }
+
+        /* ── Progress ── */
+        .progress {
+            width: 100%;
+            height: 3px;
+            border-radius: 1.5px;
+            background: var(--border-light);
+            margin-bottom: 32px;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeIn 0.4s ease 0.05s forwards;
+        }
+
+        .progress-fill {
+            width: 33.33%;
+            height: 100%;
+            border-radius: 1.5px;
+            background: var(--accent);
+        }
+
+        /* ── Header ── */
+        .header {
+            margin-bottom: 0;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: up 0.5s cubic-bezier(0.23, 1, 0.32, 1) 0.08s forwards;
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 15px;
+            color: var(--text-tertiary);
+            line-height: 1.45;
+            margin-top: 10px;
+            max-width: 310px;
+        }
+
+        /* ═══════════════════════════════════════════════════
+       CENTER AREA — fills between header and footer
+       ═══════════════════════════════════════════════════ */
+        .center-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        /* ═══════════════════════════════════════════════════
+       CHIPS CLOUD — Hero-scale pills
+       ═══════════════════════════════════════════════════ */
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: up 0.5s cubic-bezier(0.23, 1, 0.32, 1) 0.18s forwards;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            height: 56px;
+            padding: 0 24px 0 18px;
+            border-radius: 28px;
+            border: 1.5px solid var(--border-light);
+            background: var(--white);
+            font-family: var(--font-text);
+            font-size: 17px;
+            font-weight: 400;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .chip:hover {
+            border-color: #D4D2CF;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transform: translateY(-1px);
+        }
+
+        .chip:active {
+            transform: scale(0.96);
+        }
+
+        .chip.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--white);
+            box-shadow: 0 4px 14px rgba(244, 167, 108, 0.28);
+        }
+
+        .chip.selected:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .chip.selected .chip-icon svg {
+            stroke: var(--white);
+            fill: none;
+        }
+
+        .chip.selected .chip-icon .fill-icon {
+            fill: var(--white);
+            stroke: none;
+        }
+
+        .chip-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .chip-icon svg {
+            width: 24px;
+            height: 24px;
+            transition: all 0.2s ease;
+        }
+
+        /* ═══════════════════════════════════════════════════
+       OUTROS EXPAND
+       ═══════════════════════════════════════════════════ */
+        .outros-expand {
+            width: 100%;
+            align-self: stretch;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.35s cubic-bezier(0.23, 1, 0.32, 1),
+                opacity 0.25s ease,
+                margin 0.25s ease;
+            margin-top: 0;
+        }
+
+        .outros-expand.open {
+            max-height: 64px;
+            opacity: 1;
+            margin-top: 14px;
+        }
+
+        .outros-input {
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-radius: 14px;
+            background: var(--bg-input);
+            padding: 0 18px;
+            font-family: var(--font-text);
+            font-size: 15px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .outros-input::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        .outros-input:focus {
+            background: #EBE9E6;
+            box-shadow: 0 0 0 2px rgba(244, 167, 108, 0.25);
+        }
+
+        /* ═══════════════════════════════════════════════════
+       TRUST CARD (Security container)
+       ═══════════════════════════════════════════════════ */
+        .trust-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 20px;
+            border-radius: 16px;
+            background: var(--white);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            margin-bottom: 16px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.45s forwards;
+        }
+
+        .trust-card-icon {
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .trust-card-icon dotlottie-wc {
+            width: 100px;
+            height: 100px;
+        }
+
+        .trust-card-text {
+            font-family: var(--font-text);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.5;
+            color: #A0A0A5;
+            letter-spacing: 0.01em;
+        }
+
+        /* ── Bottom ── */
+        .bottom {
+            padding-top: 0;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: up 0.5s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
+        }
+
+        .cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 54px;
+            border: none;
+            border-radius: 14px;
+            background: var(--accent);
+            color: var(--white);
+            font-family: var(--font-text);
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(244, 167, 108, 0.20);
+            transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .cta:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 12px 32px rgba(244, 167, 108, 0.35);
+            transform: translateY(-2px);
+        }
+
+        .cta:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 16px rgba(244, 167, 108, 0.15);
+        }
+
+        /* ── Animations ── */
+        @keyframes up {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .screen {
+                max-width: 420px;
+                margin: 0 auto;
+                left: 0;
+                right: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="screen">
+
+        <div class="progress" role="progressbar" aria-valuenow="33">
+            <div class="progress-fill"></div>
+        </div>
+
+        <header class="header">
+            <h1>Onde estão as suas<br>tarefas hoje?</h1>
+            <p>Selecione o que você já usa para o DayOS sincronizar tudo em um só lugar.</p>
+        </header>
+
+        <!-- ── Center Area (vertically fills) ── -->
+        <div class="center-area">
+
+            <!-- ── Chip Cloud ── -->
+            <div class="chips">
+
+                <button class="chip" data-tool="google-calendar" type="button">
+                    <span class="chip-icon">
+                        <svg viewBox="0 0 18 18" fill="none">
+                            <rect x="2" y="2" width="14" height="14" rx="3" fill="#FFF" stroke="#E0E0E0"
+                                stroke-width="0.5" />
+                            <rect x="2" y="2" width="14" height="4" rx="3" ry="0" fill="#4285F4" />
+                            <rect x="2" y="5" width="14" height="1" fill="#4285F4" />
+                            <rect x="4.5" y="9" width="2" height="1.5" rx="0.3" fill="#34A853" />
+                            <rect x="8" y="9" width="2" height="1.5" rx="0.3" fill="#FBBC05" />
+                            <rect x="11.5" y="9" width="2" height="1.5" rx="0.3" fill="#EA4335" />
+                            <rect x="4.5" y="12" width="2" height="1.5" rx="0.3" fill="#4285F4" />
+                            <rect x="8" y="12" width="2" height="1.5" rx="0.3" fill="#34A853" />
+                        </svg>
+                    </span>
+                    Google Calendar
+                </button>
+
+                <button class="chip" data-tool="apple-calendar" type="button">
+                    <span class="chip-icon">
+                        <svg viewBox="0 0 18 18" fill="none">
+                            <rect x="1" y="4" width="16" height="13" rx="3" fill="#FF3B30" />
+                            <rect x="1" y="8" width="16" height="9" fill="#FFF" />
+                            <rect x="1" y="14" width="16" height="3" rx="3" fill="#FFF" />
+                            <text x="9" y="14.5" font-family="-apple-system" font-size="7" font-weight="700"
+                                fill="#2D2D2D" text-anchor="middle">17</text>
+                        </svg>
+                    </span>
+                    Apple Calendar
+                </button>
+
+                <button class="chip" data-tool="notion" type="button">
+                    <span class="chip-icon">
+                        <svg viewBox="0 0 18 18" fill="none">
+                            <rect x="3" y="2" width="12" height="14" rx="2" fill="#FFF" stroke="#2D2D2D"
+                                stroke-width="1" />
+                            <line x1="6" y1="6" x2="12" y2="6" stroke="#2D2D2D" stroke-width="0.8"
+                                stroke-linecap="round" />
+                            <line x1="6" y1="8.5" x2="11" y2="8.5" stroke="#2D2D2D" stroke-width="0.8"
+                                stroke-linecap="round" />
+                            <line x1="6" y1="11" x2="9.5" y2="11" stroke="#2D2D2D" stroke-width="0.8"
+                                stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    Notion
+                </button>
+
+                <button class="chip" data-tool="gmail" type="button">
+                    <span class="chip-icon">
+                        <svg viewBox="0 0 18 18" fill="none">
+                            <rect x="1" y="4" width="16" height="10" rx="2" fill="#FFF" stroke="#E0E0E0"
+                                stroke-width="0.5" />
+                            <path d="M1 6l8 5 8-5" stroke="#EA4335" stroke-width="1.2" stroke-linecap="round"
+                                fill="none" />
+                        </svg>
+                    </span>
+                    Gmail
+                </button>
+
+                <button class="chip" data-tool="papel" type="button">
+                    <span class="chip-icon">
+                        <svg viewBox="0 0 18 18" fill="none" stroke="#8A8A8E" stroke-width="1.2" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M14.5 10.2V14a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h3.3" />
+                            <path d="M10 2l4.5 4.5" />
+                            <path d="M10 2v3.5a1 1 0 0 0 1 1h3.5" />
+                            <line x1="6" y1="10" x2="10" y2="10" />
+                            <line x1="6" y1="12.5" x2="12" y2="12.5" />
+                        </svg>
+                    </span>
+                    Papel e Caneta
+                </button>
+
+                <button class="chip" data-tool="outros" type="button">
+                    <span class="chip-icon">
+                        <svg viewBox="0 0 18 18" fill="none">
+                            <circle cx="5" cy="9" r="1.3" fill="#AEAEB2" class="fill-icon" />
+                            <circle cx="9" cy="9" r="1.3" fill="#AEAEB2" class="fill-icon" />
+                            <circle cx="13" cy="9" r="1.3" fill="#AEAEB2" class="fill-icon" />
+                        </svg>
+                    </span>
+                    Outros
+                </button>
+
+            </div>
+
+            <!-- ── Outros Input ── -->
+            <div class="outros-expand" id="outrosExpand">
+                <input class="outros-input" type="text" id="outrosInput" placeholder="Qual outra ferramenta?"
+                    autocomplete="off">
+            </div>
+
+        </div>
+
+        <!-- ── Security Card ── -->
+        <div class="trust-card">
+            <div class="trust-card-icon">
+                <dotlottie-wc src="https://lottie.host/05120a9c-eec0-4702-a6be-323b5a4d69d4/GjvZyVF1uu.lottie" autoplay
+                    loop></dotlottie-wc>
+            </div>
+            <p class="trust-card-text">Seus dados de agenda e e-mail são processados localmente e nunca compartilhados.
+                Privacidade total.</p>
+        </div>
+
+        <div class="bottom">
+            <button class="cta" type="button" id="ctaContinue">Continuar</button>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('touchmove', e => { if (e.target.tagName !== 'INPUT') e.preventDefault(); }, { passive: false });
+        document.addEventListener('gesturestart', e => e.preventDefault());
+
+        const chips = document.querySelectorAll('.chip');
+        const outrosExpand = document.getElementById('outrosExpand');
+        const outrosInput = document.getElementById('outrosInput');
+
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chip.classList.toggle('selected');
+
+                if (chip.dataset.tool === 'outros') {
+                    if (chip.classList.contains('selected')) {
+                        outrosExpand.classList.add('open');
+                        setTimeout(() => outrosInput.focus(), 350);
+                    } else {
+                        outrosExpand.classList.remove('open');
+                        outrosInput.value = '';
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

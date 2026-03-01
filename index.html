@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#FAF8F5">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@latest/dist/dotlottie-wc.js" type="module"></script>
+  <title>DayOS — Seu Sistema Operacional Comportamental</title>
+  <meta name="description"
+    content="DayOS é o assistente comportamental que organiza sua rotina para prevenir o esgotamento. Sincronize sua vida, respeite sua energia.">
+  <style>
+    /* ═══════════════════════════════════════════════════
+       DESIGN TOKENS
+       ═══════════════════════════════════════════════════ */
+    :root {
+      --bg: #FAF8F5;
+      --accent: #F4A76C;
+      --accent-hover: #E8955A;
+      --accent-glow: rgba(244, 167, 108, 0.30);
+      --accent-light: #FDDCBC;
+      --text-primary: #2D2D2D;
+      --text-secondary: #6B6B6B;
+      --white: #FFFFFF;
+
+      --font-display: -apple-system, 'SF Pro Display', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+      --font-text: -apple-system, 'SF Pro Text', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RESET & BASE
+       ═══════════════════════════════════════════════════ */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    body {
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-text);
+      background-color: var(--bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       LAYOUT — FULL SCREEN CONTAINER
+       ═══════════════════════════════════════════════════ */
+    .welcome-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 100dvh;
+      padding-top: calc(var(--safe-top) + 48px);
+      padding-bottom: calc(var(--safe-bottom) + 24px);
+      padding-left: 24px;
+      padding-right: 24px;
+      position: relative;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       SECTION: LOGO
+       ═══════════════════════════════════════════════════ */
+    .logo {
+      text-align: center;
+      opacity: 0;
+      transform: translateY(-12px);
+      animation: fadeSlideDown 0.7s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+    }
+
+    .logo-text {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .logo-text .logo-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-left: 1px;
+      vertical-align: baseline;
+      position: relative;
+      top: -1px;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       SECTION: CENTRAL CONTENT (Animation + Copy)
+       ═══════════════════════════════════════════════════ */
+    .central-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 32px;
+      max-width: 340px;
+    }
+
+    /* ── Floor Shadow ("chão" da animação) ── */
+    .animation-floor {
+      width: 160px;
+      height: 20px;
+      margin-top: -16px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center,
+          rgba(244, 167, 108, 0.15) 0%,
+          rgba(244, 167, 108, 0.06) 40%,
+          transparent 70%);
+      filter: blur(6px);
+      opacity: 0;
+      animation: fadeIn 1s cubic-bezier(0.23, 1, 0.32, 1) 0.5s forwards;
+    }
+
+    /* ── Breathing Animation ── */
+    .animation-container {
+      width: 240px;
+      height: 240px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeIn 1s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
+    }
+
+    .breathing-orb {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%,
+          #FDCFA1 0%,
+          var(--accent) 50%,
+          #F09858 100%);
+      filter: blur(0px);
+      animation: breathe 5s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+      position: relative;
+    }
+
+    .breathing-orb::before {
+      content: '';
+      position: absolute;
+      inset: -20px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+          var(--accent-glow) 0%,
+          transparent 70%);
+      animation: glowPulse 5s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+    }
+
+    .breathing-orb::after {
+      content: '';
+      position: absolute;
+      width: 60%;
+      height: 40%;
+      top: 18%;
+      left: 20%;
+      border-radius: 50%;
+      background: radial-gradient(ellipse,
+          rgba(255, 255, 255, 0.35) 0%,
+          transparent 70%);
+      filter: blur(8px);
+    }
+
+    /* Small floating particles */
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--accent-light);
+      opacity: 0;
+    }
+
+    .particle-1 {
+      width: 6px;
+      height: 6px;
+      top: 15%;
+      left: 20%;
+      animation: floatParticle 6s ease-in-out 1s infinite;
+    }
+
+    .particle-2 {
+      width: 4px;
+      height: 4px;
+      top: 70%;
+      right: 18%;
+      animation: floatParticle 7s ease-in-out 2.5s infinite;
+    }
+
+    .particle-3 {
+      width: 5px;
+      height: 5px;
+      bottom: 20%;
+      left: 15%;
+      animation: floatParticle 8s ease-in-out 0.5s infinite;
+    }
+
+    /* ── Copywriting ── */
+    .copy-section {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .copy-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.015em;
+      color: var(--text-primary);
+      max-width: 300px;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeSlideUp 0.7s cubic-bezier(0.23, 1, 0.32, 1) 0.5s forwards;
+    }
+
+    .copy-subtitle {
+      font-family: var(--font-text);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #8A8A8E;
+      max-width: 280px;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeSlideUp 0.7s cubic-bezier(0.23, 1, 0.32, 1) 0.6s forwards;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       SECTION: CTA BUTTON
+       ═══════════════════════════════════════════════════ */
+    .cta-container {
+      width: 100%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeSlideUp 0.7s cubic-bezier(0.23, 1, 0.32, 1) 0.8s forwards;
+    }
+
+    .cta-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 54px;
+      border: none;
+      border-radius: 14px;
+      background: var(--accent);
+      color: var(--white);
+      font-family: var(--font-text);
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(244, 167, 108, 0.20);
+      transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: linear-gradient(180deg,
+          rgba(255, 255, 255, 0.12) 0%,
+          transparent 50%);
+      pointer-events: none;
+    }
+
+    .cta-button:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 12px 32px rgba(244, 167, 108, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .cta-button:active {
+      transform: scale(0.98) translateY(0px);
+      box-shadow: 0 4px 16px rgba(244, 167, 108, 0.15);
+    }
+
+    /* ── Footer Link ── */
+    .footer-link {
+      font-family: var(--font-text);
+      font-size: 14px;
+      font-weight: 400;
+      color: #AEAEB2;
+      text-decoration: none;
+      padding: 4px 8px;
+      transition: color 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .footer-link:hover {
+      color: var(--text-secondary);
+    }
+
+    .footer-link span {
+      font-weight: 500;
+      color: #8A8A8E;
+    }
+
+    .footer-link:hover span {
+      color: var(--text-primary);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       KEYFRAME ANIMATIONS
+       ═══════════════════════════════════════════════════ */
+    @keyframes fadeSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        transform: scale(1);
+        filter: blur(0px);
+      }
+
+      50% {
+        transform: scale(1.08);
+        filter: blur(1px);
+      }
+    }
+
+    @keyframes glowPulse {
+
+      0%,
+      100% {
+        opacity: 0.5;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.85;
+        transform: scale(1.15);
+      }
+    }
+
+    @keyframes floatParticle {
+
+      0%,
+      100% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.8);
+      }
+
+      25% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: translate(-8px, -16px) scale(1);
+      }
+
+      75% {
+        opacity: 0.6;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RESPONSIVE — Smaller phones
+       ═══════════════════════════════════════════════════ */
+    @media (max-height: 700px) {
+      .animation-container {
+        width: 180px;
+        height: 180px;
+      }
+
+      .breathing-orb {
+        width: 140px;
+        height: 140px;
+      }
+
+      .copy-title {
+        font-size: 22px;
+      }
+
+      .copy-subtitle {
+        font-size: 14px;
+      }
+
+      .central-content {
+        gap: 28px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RESPONSIVE — Tablets & Desktop (keep contained)
+       ═══════════════════════════════════════════════════ */
+    @media (min-width: 600px) {
+      .welcome-screen {
+        max-width: 420px;
+        margin: 0 auto;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       ACCESSIBILITY — Respect reduced motion
+       ═══════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="welcome-screen">
+
+    <!-- ── Logo ── -->
+    <header class="logo">
+      <h1 class="logo-text">
+        DayOS<span class="logo-dot"></span>
+      </h1>
+    </header>
+
+    <!-- ── Central: Animation + Copy ── -->
+    <section class="central-content">
+
+      <!-- Lottie Animation -->
+      <div class="animation-container" aria-hidden="true">
+        <dotlottie-wc src="https://lottie.host/8ce6828f-5172-4c2a-a202-009b6eecbe44/fo5q5O4YSd.lottie"
+          style="width: 240px; height: 240px;" loop autoplay></dotlottie-wc>
+      </div>
+
+      <!-- Floor Shadow -->
+      <div class="animation-floor" aria-hidden="true"></div>
+
+      <!-- Copywriting -->
+      <div class="copy-section">
+        <h2 class="copy-title">
+          Sincronize sua vida.<br>Respeite sua energia.
+        </h2>
+        <p class="copy-subtitle">
+          Seu assistente comportamental que organiza sua rotina para prevenir o esgotamento.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ── CTA Footer ── -->
+    <div class="cta-container">
+      <button id="cta-start" class="cta-button" type="button" onclick="window.location.href='/signup.html'">
+        Começar
+      </button>
+      <a href="#" class="footer-link">Já tem uma conta? <span>Entrar</span></a>
+    </div>
+
+  </main>
+
+  <script>
+    document.addEventListener('touchmove', e => { if (e.target.tagName !== 'INPUT') e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturestart', e => e.preventDefault());
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+
+</body>
+
+</html>
