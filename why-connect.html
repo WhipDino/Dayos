@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#FAF8F5">
+  <link rel="manifest" href="/manifest.json">
+  <title>DayOS — Como funciona</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════════
+       TOKENS
+       ═══════════════════════════════════════════════════ */
+    :root {
+      --bg:             #FAF8F5;
+      --surface:        #FFFFFF;
+      --surface-2:      #F5F3F0;
+      --accent:         #F4A76C;
+      --accent-hover:   #E8955A;
+      --accent-glow:    rgba(244,167,108,0.22);
+      --accent-light:   rgba(244,167,108,0.10);
+      --dawn:           #F4A261;
+      --sunrise:        #E76F51;
+      --noon:           #FBBF24;
+      --dusk:           #6366F1;
+      --success:        #34D399;
+      --text:           #2D2D2D;
+      --text-2:         #6B6B6B;
+      --text-3:         #9B9790;
+      --border:         #ECEAE7;
+      --border-2:       rgba(0,0,0,0.05);
+
+      --font-display:   'Outfit', -apple-system, sans-serif;
+      --font-body:      'DM Sans', -apple-system, sans-serif;
+
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --spring:      cubic-bezier(0.23, 1, 0.32, 1);
+      --out:         cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html { height:100%; overflow:hidden; touch-action:none; }
+
+    body {
+      height: 100%;
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       LAYOUT
+       ═══════════════════════════════════════════════════ */
+    .screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      padding: calc(var(--safe-top) + 16px) 0 calc(var(--safe-bottom) + 20px);
+      max-width: 420px; margin: 0 auto;
+      left: 0; right: 0;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+      margin-bottom: 28px;
+      opacity: 0; animation: up 0.5s var(--spring) 0.05s forwards;
+    }
+
+    .logo-mark {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 700;
+      letter-spacing: -0.02em; color: var(--text);
+    }
+
+    .logo-mark .dot {
+      display: inline-block; width: 5px; height: 5px;
+      background: var(--accent); border-radius: 50%;
+      margin-left: 1px; vertical-align: middle;
+      position: relative; top: -1px;
+    }
+
+    .step-badge {
+      font-family: var(--font-body);
+      font-size: 13px; font-weight: 500;
+      color: var(--text-3);
+      background: var(--surface-2);
+      padding: 5px 12px; border-radius: 20px;
+    }
+
+    /* ── Progress ── */
+    .progress {
+      width: calc(100% - 48px); height: 3px;
+      border-radius: 1.5px; background: var(--border);
+      margin: 0 24px 32px; overflow: hidden;
+      opacity: 0; animation: fadeIn 0.4s ease 0.1s forwards;
+    }
+    .progress-fill {
+      width: 33%; height: 100%;
+      border-radius: 1.5px;
+      background: linear-gradient(90deg, var(--dawn), var(--sunrise));
+      transition: width 0.6s var(--spring);
+    }
+
+    /* ── Headline ── */
+    .headline {
+      padding: 0 24px;
+      margin-bottom: 28px;
+      opacity: 0; animation: up 0.55s var(--spring) 0.12s forwards;
+    }
+
+    .headline h1 {
+      font-family: var(--font-display);
+      font-size: 30px; font-weight: 700;
+      line-height: 1.12; letter-spacing: -0.025em;
+      color: var(--text);
+    }
+
+    .headline h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--dawn) 0%, var(--sunrise) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .headline p {
+      margin-top: 10px;
+      font-size: 15px; line-height: 1.5;
+      color: var(--text-2); max-width: 300px;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       CARDS SCROLL AREA
+       ═══════════════════════════════════════════════════ */
+    .cards-area {
+      flex: 1; overflow: hidden;
+      padding: 0 20px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    /* ── Base card ── */
+    .feature-card {
+      background: var(--surface);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      padding: 18px 18px 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
+      position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(20px);
+      flex: 1; display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: 20px;
+      opacity: 0; transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .feature-card.card-calendar { animation: cardUp 0.6s var(--spring) 0.22s forwards; }
+    .feature-card.card-gmail    { animation: cardUp 0.6s var(--spring) 0.34s forwards; }
+    .feature-card.card-ai       { animation: cardUp 0.6s var(--spring) 0.46s forwards; }
+
+    .feature-card.card-calendar::before { background: linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%); opacity: 1; }
+    .feature-card.card-gmail::before    { background: linear-gradient(135deg, rgba(234,67,53,0.04) 0%, transparent 60%); opacity: 1; }
+    .feature-card.card-ai::before       { background: linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%); opacity: 1; }
+
+    /* ── Card header ── */
+    .card-header {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .card-icon {
+      width: 38px; height: 38px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-icon.calendar-icon { background: rgba(99,102,241,0.10); }
+    .card-icon.gmail-icon    { background: rgba(234,67,53,0.08); }
+    .card-icon.ai-icon       { background: var(--accent-light); }
+
+    .card-icon svg { width: 20px; height: 20px; }
+
+    .card-title-wrap { flex: 1; }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 600;
+      letter-spacing: -0.01em; color: var(--text);
+      line-height: 1.2;
+    }
+    .card-subtitle {
+      font-size: 12px; color: var(--text-3);
+      margin-top: 2px; font-weight: 400;
+    }
+
+    /* ── Live preview inside card ── */
+    .card-preview {
+      border-radius: 12px;
+      background: var(--surface-2);
+      padding: 12px 14px;
+      flex: 1; display: flex; flex-direction: column;
+      gap: 8px; overflow: hidden; min-height: 0;
+    }
+
+    /* Calendar preview */
+    .cal-row {
+      display: flex; align-items: center; gap: 10px;
+      opacity: 0; transform: translateX(-6px);
+    }
+    .cal-row.r1 { animation: rowIn 0.4s var(--spring) 0.7s forwards; }
+    .cal-row.r2 { animation: rowIn 0.4s var(--spring) 0.85s forwards; }
+    .cal-row.r3 { animation: rowIn 0.4s var(--spring) 1.0s forwards; }
+
+    .cal-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cal-dot.blue   { background: #6366F1; }
+    .cal-dot.amber  { background: var(--accent); }
+    .cal-dot.green  { background: var(--success); }
+
+    .cal-info { flex: 1; min-width: 0; }
+    .cal-name {
+      font-size: 12px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cal-time { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+    .cal-badge {
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px; border-radius: 6px;
+      white-space: nowrap;
+    }
+    .cal-badge.soon { background: rgba(244,162,97,0.15); color: var(--accent-hover); }
+    .cal-badge.free { background: rgba(52,211,153,0.15); color: #059669; }
+    .cal-badge.done { background: rgba(0,0,0,0.06); color: var(--text-3); }
+
+    /* Gmail preview */
+    .email-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 10px; border-radius: 10px;
+      background: var(--surface);
+      opacity: 0; transform: translateX(-6px);
+    }
+    .email-row.e1 { animation: rowIn 0.4s var(--spring) 0.7s forwards; }
+    .email-row.e2 { animation: rowIn 0.4s var(--spring) 0.88s forwards; }
+
+    .email-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: white;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .email-avatar.a1 { background: linear-gradient(135deg, #EA4335, #FBBC04); }
+    .email-avatar.a2 { background: linear-gradient(135deg, #4285F4, #34A853); }
+
+    .email-body { flex: 1; min-width: 0; }
+    .email-from { font-size: 12px; font-weight: 600; color: var(--text); }
+    .email-subject {
+      font-size: 11px; color: var(--text-2);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .email-action-tag {
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 5px;
+      white-space: nowrap; margin-top: 4px; display: inline-block;
+    }
+    .email-action-tag.reply   { background: rgba(244,162,97,0.15); color: var(--accent-hover); }
+    .email-action-tag.review  { background: rgba(99,102,241,0.12); color: #6366F1; }
+
+    /* AI preview — typing animation */
+    .ai-bubble {
+      background: var(--surface);
+      border-radius: 12px; padding: 10px 14px;
+      opacity: 0;
+      animation: rowIn 0.5s var(--spring) 0.7s forwards;
+    }
+
+    .ai-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--accent);
+      margin-bottom: 6px; display: flex; align-items: center; gap: 5px;
+    }
+
+    .ai-label-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.6; }
+    }
+
+    .ai-text {
+      font-size: 13px; line-height: 1.5; color: var(--text);
+      font-weight: 400;
+    }
+
+    .ai-text .highlight {
+      font-weight: 600; color: var(--accent-hover);
+    }
+
+    .ai-tasks {
+      margin-top: 8px; display: flex; flex-direction: column; gap: 5px;
+      opacity: 0; animation: rowIn 0.4s var(--spring) 1.1s forwards;
+    }
+
+    .ai-task-item {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .ai-task-check {
+      width: 14px; height: 14px; border-radius: 4px;
+      border: 1.5px solid var(--border); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .ai-task-check.done {
+      background: var(--success); border-color: var(--success);
+    }
+    .ai-task-check.done::after {
+      content: '';
+      width: 7px; height: 5px;
+      border-left: 1.5px solid white;
+      border-bottom: 1.5px solid white;
+      transform: rotate(-45deg) translateY(-1px);
+    }
+
+    .ai-task-text {
+      font-size: 12px; color: var(--text); font-weight: 500;
+    }
+    .ai-task-text.done-text {
+      text-decoration: line-through; color: var(--text-3);
+    }
+
+    /* Privacy pill */
+    .privacy-pill {
+      margin: 0 20px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px; border-radius: 14px;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.18);
+      opacity: 0; animation: up 0.5s var(--spring) 0.6s forwards;
+      flex-shrink: 0; margin-top: 12px;
+    }
+
+    .privacy-icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: rgba(52,211,153,0.15);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .privacy-icon svg {
+      width: 14px; height: 14px;
+      stroke: #059669; stroke-width: 2.2;
+      fill: none; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .privacy-text {
+      font-size: 12px; font-weight: 500;
+      color: #047857; line-height: 1.4;
+    }
+    .privacy-text strong { font-weight: 700; }
+
+    /* ═══════════════════════════════════════════════════
+       BOTTOM CTA
+       ═══════════════════════════════════════════════════ */
+    .bottom {
+      padding: 16px 24px 0;
+      flex-shrink: 0;
+      opacity: 0; animation: up 0.5s var(--spring) 0.7s forwards;
+    }
+
+    .cta {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; width: 100%; height: 56px;
+      border: none; border-radius: 16px;
+      background: linear-gradient(135deg, var(--dawn) 0%, var(--sunrise) 100%);
+      color: white;
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(244,162,97,0.30), 0 2px 8px rgba(244,162,97,0.15);
+      transition: all 0.22s var(--spring);
+      -webkit-tap-highlight-color: transparent;
+      position: relative; overflow: hidden;
+    }
+
+    .cta::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(244,162,97,0.38), 0 4px 12px rgba(244,162,97,0.18);
+    }
+
+    .cta:active { transform: scale(0.98); }
+
+    .cta-arrow {
+      width: 18px; height: 18px;
+      stroke: white; stroke-width: 2.5;
+      stroke-linecap: round; stroke-linejoin: round; fill: none;
+      transition: transform 0.2s var(--spring);
+    }
+    .cta:hover .cta-arrow { transform: translateX(4px); }
+
+    /* ═══════════════════════════════════════════════════
+       KEYFRAMES
+       ═══════════════════════════════════════════════════ */
+    @keyframes up {
+      from { opacity:0; transform: translateY(14px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity:0; }
+      to   { opacity:1; }
+    }
+
+    @keyframes cardUp {
+      from { opacity:0; transform: translateY(20px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    @keyframes rowIn {
+      from { opacity:0; transform: translateX(-6px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+
+    /* Shimmer on card load */
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════ */
+    @media (max-height: 700px) {
+      .headline h1 { font-size: 26px; }
+      .headline { margin-bottom: 20px; }
+      .cards-area { gap: 8px; }
+      .feature-card { padding: 14px 14px 12px; }
+      .card-preview { padding: 10px 12px; }
+      .privacy-pill { margin-top: 8px; }
+    }
+
+    @media (max-height: 620px) {
+      .headline p { display: none; }
+      .headline { margin-bottom: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="screen">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <span class="logo-mark">DayOS<span class="dot"></span></span>
+    <span class="step-badge">Passo 2 de 5</span>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress">
+    <div class="progress-fill" style="width: 40%"></div>
+  </div>
+
+  <!-- Headline -->
+  <div class="headline">
+    <h1>Como a IA<br>organiza <em>seu dia</em></h1>
+    <p>Conecte suas ferramentas uma vez. A IA cuida do resto todo dia.</p>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards-area">
+
+    <!-- Card 1: Google Calendar -->
+    <div class="feature-card card-calendar">
+      <div class="card-header">
+        <div class="card-icon calendar-icon">
+          <!-- Google Calendar icon -->
+          <svg viewBox="0 0 20 20" fill="none">
+            <rect x="2" y="3" width="16" height="15" rx="3" fill="white" stroke="#E0E0E0" stroke-width="0.8"/>
+            <rect x="2" y="3" width="16" height="5" rx="3" fill="#4285F4"/>
+            <rect x="2" y="7" width="16" height="1" fill="#4285F4"/>
+            <rect x="5" y="11" width="2.5" height="2" rx="0.4" fill="#34A853"/>
+            <rect x="8.8" y="11" width="2.5" height="2" rx="0.4" fill="#FBBC05"/>
+            <rect x="12.5" y="11" width="2.5" height="2" rx="0.4" fill="#EA4335"/>
+            <rect x="5" y="14.5" width="2.5" height="2" rx="0.4" fill="#4285F4"/>
+            <rect x="8.8" y="14.5" width="2.5" height="2" rx="0.4" fill="#34A853"/>
+          </svg>
+        </div>
+        <div class="card-title-wrap">
+          <div class="card-title">Lê sua agenda</div>
+          <div class="card-subtitle">Reuniões, blocos livres, compromissos</div>
+        </div>
+      </div>
+
+      <div class="card-preview">
+        <div class="cal-row r1">
+          <div class="cal-dot blue"></div>
+          <div class="cal-info">
+            <div class="cal-name">Daily com o time</div>
+            <div class="cal-time">09:30 · 30 min</div>
+          </div>
+          <span class="cal-badge soon">em breve</span>
+        </div>
+        <div class="cal-row r2">
+          <div class="cal-dot green"></div>
+          <div class="cal-info">
+            <div class="cal-name">Bloco livre</div>
+            <div class="cal-time">10:00 – 12:00</div>
+          </div>
+          <span class="cal-badge free">livre</span>
+        </div>
+        <div class="cal-row r3">
+          <div class="cal-dot amber"></div>
+          <div class="cal-info">
+            <div class="cal-name">1:1 com gestor</div>
+            <div class="cal-time">14:00 · 1h</div>
+          </div>
+          <span class="cal-badge done">depois</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Gmail -->
+    <div class="feature-card card-gmail">
+      <div class="card-header">
+        <div class="card-icon gmail-icon">
+          <svg viewBox="0 0 20 20" fill="none">
+            <rect x="1" y="4" width="18" height="12" rx="2.5" fill="white" stroke="#E0E0E0" stroke-width="0.8"/>
+            <path d="M1 7l9 5.5L19 7" stroke="#EA4335" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="card-title-wrap">
+          <div class="card-title">Processa seus emails</div>
+          <div class="card-subtitle">Identifica ações, filtra o que importa</div>
+        </div>
+      </div>
+
+      <div class="card-preview">
+        <div class="email-row e1">
+          <div class="email-avatar a1">M</div>
+          <div class="email-body">
+            <div class="email-from">Maria · Product</div>
+            <div class="email-subject">Aprovação do wireframe Q2</div>
+            <span class="email-action-tag reply">↩ responder hoje</span>
+          </div>
+        </div>
+        <div class="email-row e2">
+          <div class="email-avatar a2">R</div>
+          <div class="email-body">
+            <div class="email-from">Rafael · Tech Lead</div>
+            <div class="email-subject">PR #142 — revisão pendente</div>
+            <span class="email-action-tag review">👁 revisar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: IA -->
+    <div class="feature-card card-ai">
+      <div class="card-header">
+        <div class="card-icon ai-icon">
+          <svg viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="7" stroke="var(--accent)" stroke-width="1.5"/>
+            <path d="M7 10c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="10" cy="10" r="1.5" fill="var(--accent)"/>
+            <line x1="10" y1="3" x2="10" y2="1" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="10" y1="19" x2="10" y2="17" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="3" y1="10" x2="1" y2="10" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="19" y1="10" x2="17" y2="10" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="card-title-wrap">
+          <div class="card-title">Monta seu dia</div>
+          <div class="card-subtitle">Tarefas priorizadas nas janelas certas</div>
+        </div>
+      </div>
+
+      <div class="card-preview">
+        <div class="ai-bubble">
+          <div class="ai-label">
+            <div class="ai-label-dot"></div>
+            DayOS · Briefing de hoje
+          </div>
+          <div class="ai-text">
+            Você tem <span class="highlight">2h livres</span> antes do 1:1. Priorizei:
+          </div>
+          <div class="ai-tasks">
+            <div class="ai-task-item">
+              <div class="ai-task-check done"></div>
+              <span class="ai-task-text done-text">Responder Maria sobre wireframe</span>
+            </div>
+            <div class="ai-task-item">
+              <div class="ai-task-check"></div>
+              <span class="ai-task-text">Revisar PR #142 do Rafael</span>
+            </div>
+            <div class="ai-task-item">
+              <div class="ai-task-check"></div>
+              <span class="ai-task-text">Preparar pauta do 1:1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.cards-area -->
+
+  <!-- Privacy pill -->
+  <div class="privacy-pill">
+    <div class="privacy-icon">
+      <svg viewBox="0 0 16 16">
+        <path d="M8 1L2 4v4c0 3.31 2.55 6.41 6 7 3.45-.59 6-3.69 6-7V4L8 1z"/>
+        <path d="M5.5 8l2 2 3.5-3.5" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <p class="privacy-text">
+      <strong>Seus dados ficam com você.</strong> Leitura somente. Nunca armazenamos emails ou eventos.
+    </p>
+  </div>
+
+  <!-- CTA -->
+  <div class="bottom">
+    <button class="cta" type="button" onclick="window.location.href='/connect.html'">
+      Entendi, vamos conectar
+      <svg class="cta-arrow" viewBox="0 0 24 24">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+        <polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('touchmove', e => {
+    if (e.target.tagName !== 'INPUT') e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('gesturestart', e => e.preventDefault());
+</script>
+</body>
+</html>
