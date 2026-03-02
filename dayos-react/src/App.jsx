@@ -3,6 +3,7 @@ import SplashScreen from './screens/SplashScreen'
 import SignUp from './screens/SignUp'
 import NameInput from './screens/NameInput'
 import WhyConnect from './screens/WhyConnect'
+import Integrations from './screens/Integrations'
 import RecapTime from './screens/RecapTime'
 import ReadyScreen from './screens/ReadyScreen'
 import './index.css'
@@ -34,8 +35,9 @@ function App() {
   if (screen === 'name') {
     return (
       <NameInput
-        step="1 de 3"
-        progress="33%"
+        step="1 de 4"
+        progress="25%"
+        onBack={() => setScreen('signup')}
         onContinue={(name) => {
           setUserName(name)
           setScreen('why-connect')
@@ -47,6 +49,16 @@ function App() {
   if (screen === 'why-connect') {
     return (
       <WhyConnect
+        onBack={() => setScreen('name')}
+        onContinue={() => setScreen('integrations')}
+      />
+    )
+  }
+
+  if (screen === 'integrations') {
+    return (
+      <Integrations
+        onBack={() => setScreen('why-connect')}
         onContinue={() => setScreen('recap')}
       />
     )
@@ -55,8 +67,9 @@ function App() {
   if (screen === 'recap') {
     return (
       <RecapTime
-        step="3 de 3"
+        step="4 de 4"
         progress="100%"
+        onBack={() => setScreen('integrations')}
         onContinue={({ time }) => {
           setRecapTime(time)
           setScreen('ready')

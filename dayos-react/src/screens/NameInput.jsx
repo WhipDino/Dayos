@@ -37,7 +37,7 @@ const ArrowIcon = () => (
 /* ═══════════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════════ */
-export default function NameInput({ onContinue, step = '1 de 5', progress = '20%' }) {
+export default function NameInput({ onContinue, onBack, step = '1 de 5', progress = '20%' }) {
     const [name, setName] = useState('')
     const inputRef = useRef(null)
     const hasName = name.trim().length > 0
@@ -67,9 +67,29 @@ export default function NameInput({ onContinue, step = '1 de 5', progress = '20%
                 transition={{ delay: 0.05, duration: 0.4, ease: spring }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', marginBottom: 28 }}
             >
-                <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
-                    DayOS<span style={{ display: 'inline-block', width: 5, height: 5, background: T.accent, borderRadius: '50%', marginLeft: 1, verticalAlign: 'middle', position: 'relative', top: -1 }} />
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <button
+                        onClick={onBack}
+                        style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: 40, height: 40, border: 'none', background: 'transparent',
+                            cursor: 'pointer', marginLeft: -8, borderRadius: 12, outline: 'none', WebkitTapHighlightColor: 'transparent',
+                            transition: 'background 0.15s ease'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        onMouseDown={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.08)'}
+                        onMouseUp={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                        aria-label="Voltar"
+                    >
+                        <svg viewBox="0 0 24 24" style={{ width: 20, height: 20, stroke: T.text, strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }}>
+                            <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                    </button>
+                    <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
+                        DayOS<span style={{ display: 'inline-block', width: 5, height: 5, background: T.accent, borderRadius: '50%', marginLeft: 1, verticalAlign: 'middle', position: 'relative', top: -1 }} />
+                    </span>
+                </div>
                 <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: T.text3, background: T.surface2, padding: '5px 12px', borderRadius: 20 }}>
                     Passo {step}
                 </span>

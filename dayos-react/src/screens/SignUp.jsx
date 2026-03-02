@@ -65,6 +65,13 @@ const EyeIcon = ({ slashVisible }) => (
     </svg>
 )
 
+const EmailIcon = () => (
+    <svg style={{ width: 20, height: 20, flexShrink: 0, stroke: T.text, strokeWidth: 2, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }} viewBox="0 0 24 24">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+        <polyline points="22,6 12,13 2,6" />
+    </svg>
+)
+
 /* ═══════════════════════════════════════════════════
    VALIDATION HELPERS
    ═══════════════════════════════════════════════════ */
@@ -84,6 +91,7 @@ export default function SignUp({ onContinue, onBack = () => { }, onLogin = () =>
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
+    const [showEmailForm, setShowEmailForm] = useState(false)
 
     // Validation state
     const [emailTouched, setEmailTouched] = useState(false)
@@ -177,117 +185,138 @@ export default function SignUp({ onContinue, onBack = () => { }, onLogin = () =>
                 <div style={dividerLineStyle} />
             </motion.div>
 
-            {/* ── Form ── */}
-            <motion.form
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.6, ease: spring }}
-                style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
-                onSubmit={(e) => e.preventDefault()}
-            >
-                {/* Name */}
-                <input
-                    type="text"
-                    placeholder="Nome"
-                    autoComplete="name"
-                    autoCapitalize="words"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    style={inputStyle}
-                    onFocus={(e) => { e.target.style.background = T.bgInputFocus; e.target.style.boxShadow = `0 0 0 2px ${T.accentGlow}` }}
-                    onBlur={(e) => { e.target.style.background = T.bgInput; e.target.style.boxShadow = 'none' }}
-                />
-
-                {/* Email */}
-                <input
-                    ref={emailRef}
-                    type="email"
-                    placeholder="E-mail"
-                    autoComplete="email"
-                    inputMode="email"
-                    value={email}
-                    onChange={(e) => {
-                        setEmail(e.target.value)
-                        if (emailError && isValidEmail(e.target.value)) setEmailTouched(true)
-                    }}
-                    onBlur={() => setEmailTouched(true)}
-                    style={{
-                        ...inputStyle,
-                        boxShadow: getInputRing(emailTouched && emailValid, emailError),
-                    }}
-                    onFocus={(e) => {
-                        if (!emailTouched || email.length === 0) {
-                            e.target.style.background = T.bgInputFocus
-                            e.target.style.boxShadow = `0 0 0 2px ${T.accentGlow}`
-                        }
-                    }}
-                />
-
-                {/* Email error */}
-                <AnimatePresence>
-                    {emailError && (
-                        <motion.p
-                            initial={{ opacity: 0, height: 0, marginTop: -4 }}
-                            animate={{ opacity: 1, height: 'auto', marginTop: -4 }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.25 }}
-                            style={errorTextStyle}
-                        >
-                            Insira um e-mail válido.
-                        </motion.p>
-                    )}
-                </AnimatePresence>
-
-                {/* Password */}
-                <div style={{ position: 'relative' }}>
-                    <input
-                        ref={passwordRef}
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Senha"
-                        autoComplete="new-password"
-                        value={password}
-                        onChange={(e) => {
-                            setPassword(e.target.value)
-                            setPasswordTouched(true)
-                        }}
-                        onBlur={() => {
-                            if (password.length === 0) setPasswordTouched(false)
-                        }}
-                        style={{
-                            ...inputStyle,
-                            paddingRight: 52,
-                            boxShadow: getInputRing(passwordTouched && passwordValid, passwordError),
-                        }}
-                        onFocus={(e) => {
-                            if (!passwordTouched || password.length === 0) {
-                                e.target.style.background = T.bgInputFocus
-                                e.target.style.boxShadow = `0 0 0 2px ${T.accentGlow}`
-                            }
-                        }}
-                    />
-                    <motion.button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        whileHover={{ background: 'rgba(0,0,0,0.04)' }}
-                        style={toggleBtnStyle}
-                        aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+            {/* ── Form or Alternative Auth ── */}
+            <AnimatePresence mode="popLayout">
+                {showEmailForm ? (
+                    <motion.form
+                        key="email-form"
+                        initial={{ opacity: 0, y: 12, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                        exit={{ opacity: 0, y: 12, height: 0 }}
+                        transition={{ duration: 0.5, ease: spring }}
+                        style={{ display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}
+                        onSubmit={(e) => e.preventDefault()}
                     >
-                        <EyeIcon slashVisible={!showPassword} />
-                    </motion.button>
-                </div>
+                        {/* Name */}
+                        <input
+                            type="text"
+                            placeholder="Nome"
+                            autoComplete="name"
+                            autoCapitalize="words"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            style={inputStyle}
+                            onFocus={(e) => { e.target.style.background = T.bgInputFocus; e.target.style.boxShadow = `0 0 0 2px ${T.accentGlow}` }}
+                            onBlur={(e) => { e.target.style.background = T.bgInput; e.target.style.boxShadow = 'none' }}
+                        />
 
-                {/* Password helper */}
-                <p style={{
-                    ...helperTextStyle,
-                    color: passwordTouched && password.length > 0
-                        ? (passwordValid ? T.success : T.error)
-                        : T.textPlaceholder,
-                }}>
-                    {passwordTouched && password.length > 0 && passwordValid
-                        ? '✓ Senha segura'
-                        : 'Use 8+ caracteres com letras e números.'}
-                </p>
-            </motion.form>
+                        {/* Email */}
+                        <input
+                            ref={emailRef}
+                            type="email"
+                            placeholder="E-mail"
+                            autoComplete="email"
+                            inputMode="email"
+                            value={email}
+                            onChange={(e) => {
+                                setEmail(e.target.value)
+                                if (emailError && isValidEmail(e.target.value)) setEmailTouched(true)
+                            }}
+                            onBlur={() => setEmailTouched(true)}
+                            style={{
+                                ...inputStyle,
+                                boxShadow: getInputRing(emailTouched && emailValid, emailError),
+                            }}
+                            onFocus={(e) => {
+                                if (!emailTouched || email.length === 0) {
+                                    e.target.style.background = T.bgInputFocus
+                                    e.target.style.boxShadow = `0 0 0 2px ${T.accentGlow}`
+                                }
+                            }}
+                        />
+
+                        {/* Email error */}
+                        <AnimatePresence>
+                            {emailError && (
+                                <motion.p
+                                    initial={{ opacity: 0, height: 0, marginTop: -4 }}
+                                    animate={{ opacity: 1, height: 'auto', marginTop: -4 }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.25 }}
+                                    style={errorTextStyle}
+                                >
+                                    Insira um e-mail válido.
+                                </motion.p>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Password */}
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                ref={passwordRef}
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="Senha"
+                                autoComplete="new-password"
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value)
+                                    setPasswordTouched(true)
+                                }}
+                                onBlur={() => {
+                                    if (password.length === 0) setPasswordTouched(false)
+                                }}
+                                style={{
+                                    ...inputStyle,
+                                    paddingRight: 52,
+                                    boxShadow: getInputRing(passwordTouched && passwordValid, passwordError),
+                                }}
+                                onFocus={(e) => {
+                                    if (!passwordTouched || password.length === 0) {
+                                        e.target.style.background = T.bgInputFocus
+                                        e.target.style.boxShadow = `0 0 0 2px ${T.accentGlow}`
+                                    }
+                                }}
+                            />
+                            <motion.button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                whileHover={{ background: 'rgba(0,0,0,0.04)' }}
+                                style={toggleBtnStyle}
+                                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                            >
+                                <EyeIcon slashVisible={!showPassword} />
+                            </motion.button>
+                        </div>
+
+                        {/* Password helper */}
+                        <p style={{
+                            ...helperTextStyle,
+                            color: passwordTouched && password.length > 0
+                                ? (passwordValid ? T.success : T.error)
+                                : T.textPlaceholder,
+                        }}>
+                            {passwordTouched && password.length > 0 && passwordValid
+                                ? '✓ Senha segura'
+                                : 'Use 8+ caracteres com letras e números.'}
+                        </p>
+                    </motion.form>
+                ) : (
+                    <motion.button
+                        key="email-btn"
+                        initial={{ opacity: 0, y: 12, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: 52 }}
+                        exit={{ opacity: 0, y: 12, height: 0 }}
+                        transition={{ duration: 0.4, ease: spring }}
+                        onClick={() => setShowEmailForm(true)}
+                        whileHover={{ y: -1, boxShadow: '0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06)' }}
+                        whileTap={{ scale: 0.99 }}
+                        style={emailBtnStyle}
+                    >
+                        <EmailIcon />
+                        <span style={socialTextStyle}>Continuar com e-mail</span>
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
             {/* ── Spacer ── */}
             <div style={{ flex: 1 }} />
@@ -299,15 +328,20 @@ export default function SignUp({ onContinue, onBack = () => { }, onLogin = () =>
                 transition={{ delay: 0.4, duration: 0.6, ease: spring }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}
             >
-                <motion.button
-                    onClick={handleSubmit}
-                    whileHover={{ y: -2, boxShadow: '0 14px 36px rgba(244,162,97,0.38), 0 4px 12px rgba(244,162,97,0.18)' }}
-                    whileTap={{ scale: 0.98 }}
-                    style={ctaButtonStyle}
-                >
-                    <span style={ctaShineStyle} />
-                    Criar conta
-                </motion.button>
+                {showEmailForm && (
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        onClick={handleSubmit}
+                        whileHover={{ y: -2, boxShadow: '0 14px 36px rgba(244,162,97,0.38), 0 4px 12px rgba(244,162,97,0.18)' }}
+                        whileTap={{ scale: 0.98 }}
+                        style={ctaButtonStyle}
+                    >
+                        <span style={ctaShineStyle} />
+                        Criar conta
+                    </motion.button>
+                )}
 
                 <motion.a
                     href="#"
@@ -410,6 +444,20 @@ const appleBtnStyle = {
     border: 'none',
     borderRadius: 14,
     background: '#000000',
+    cursor: 'pointer',
+    padding: '0 16px',
+    WebkitTapHighlightColor: 'transparent',
+}
+
+const emailBtnStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    height: 52,
+    border: 'none',
+    borderRadius: 14,
+    background: T.surface,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
     cursor: 'pointer',
     padding: '0 16px',
     WebkitTapHighlightColor: 'transparent',
