@@ -1,48 +1,23 @@
 import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 
-/* ═══════════════════════════════════════════════════
-   DESIGN TOKENS
-   ═══════════════════════════════════════════════════ */
 const T = {
-    bg: '#FAF8F5',
-    surface: '#FFFFFF',
-    surface2: '#F5F3F0',
-    accent: '#F4A261',
-    accentHover: '#E8955A',
-    accentGlow: 'rgba(244,162,97,0.22)',
-    accentLight: 'rgba(244,167,108,0.10)',
-    dawn: '#F4A261',
-    sunrise: '#E76F51',
-    dusk: '#6366F1',
-    success: '#34D399',
-    text: '#2D2D2D',
-    text2: '#6B6B6B',
-    text3: '#9B9790',
-    border: '#ECEAE7',
+    bg: '#FAF8F5', surface: '#FFFFFF', surface2: '#F5F3F0',
+    accent: '#F4A261', accentHover: '#E8955A',
+    accentGlow: 'rgba(244,162,97,0.22)', accentLight: 'rgba(244,167,108,0.10)',
+    dawn: '#F4A261', sunrise: '#E76F51', dusk: '#6366F1', success: '#34D399',
+    text: '#2D2D2D', text2: '#6B6B6B', text3: '#9B9790', border: '#ECEAE7',
 }
 
-/* ═══════════════════════════════════════════════════
-   FRAMER MOTION VARIANTS
-   ═══════════════════════════════════════════════════ */
 const containerVariants = {
     hidden: {},
-    visible: {
-        transition: { staggerChildren: 0.22, delayChildren: 0.3 }
-    }
+    visible: { transition: { staggerChildren: 0.22, delayChildren: 0.3 } }
 }
-
 const cardVariants = {
     hidden: { opacity: 0, y: 44 },
-    visible: {
-        opacity: 1, y: 0,
-        transition: { duration: 0.65, ease: [0.23, 1, 0.32, 1] }
-    }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.23, 1, 0.32, 1] } }
 }
 
-/* ═══════════════════════════════════════════════════
-   SVG ICONS
-   ═══════════════════════════════════════════════════ */
 const CalendarIcon = () => (
     <svg viewBox="0 0 20 20" fill="none" style={{ width: 20, height: 20 }}>
         <rect x="2" y="3" width="16" height="15" rx="3" fill="white" stroke="#E0E0E0" strokeWidth="0.8" />
@@ -55,14 +30,12 @@ const CalendarIcon = () => (
         <rect x="8.8" y="14.5" width="2.5" height="2" rx="0.4" fill="#34A853" />
     </svg>
 )
-
 const GmailIcon = () => (
     <svg viewBox="0 0 20 20" fill="none" style={{ width: 20, height: 20 }}>
         <rect x="1" y="4" width="18" height="12" rx="2.5" fill="white" stroke="#E0E0E0" strokeWidth="0.8" />
         <path d="M1 7l9 5.5L19 7" stroke="#EA4335" strokeWidth="1.4" strokeLinecap="round" fill="none" />
     </svg>
 )
-
 const AiIcon = () => (
     <svg viewBox="0 0 20 20" fill="none" style={{ width: 20, height: 20 }}>
         <circle cx="10" cy="10" r="7" stroke={T.accent} strokeWidth="1.5" />
@@ -74,14 +47,12 @@ const AiIcon = () => (
         <line x1="19" y1="10" x2="17" y2="10" stroke={T.accent} strokeWidth="1.5" strokeLinecap="round" />
     </svg>
 )
-
 const ShieldIcon = () => (
     <svg viewBox="0 0 16 16" style={{ width: 14, height: 14, stroke: '#059669', strokeWidth: 2.2, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }}>
         <path d="M8 1L2 4v4c0 3.31 2.55 6.41 6 7 3.45-.59 6-3.69 6-7V4L8 1z" />
         <path d="M5.5 8l2 2 3.5-3.5" strokeWidth="1.8" />
     </svg>
 )
-
 const ArrowIcon = () => (
     <svg style={{ width: 18, height: 18, stroke: 'white', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }} viewBox="0 0 24 24">
         <line x1="5" y1="12" x2="19" y2="12" />
@@ -89,18 +60,9 @@ const ArrowIcon = () => (
     </svg>
 )
 
-/* ═══════════════════════════════════════════════════
-   SUB-COMPONENTS
-   ═══════════════════════════════════════════════════ */
-
-/* Calendar row */
 function CalRow({ dot, name, time, badge, badgeType }) {
-    const badgeColors = {
-        soon: { bg: 'rgba(244,162,97,0.15)', color: T.accentHover },
-        free: { bg: 'rgba(52,211,153,0.15)', color: '#059669' },
-        done: { bg: 'rgba(0,0,0,0.06)', color: T.text3 },
-    }
-    const bc = badgeColors[badgeType]
+    const colors = { soon: { bg: 'rgba(244,162,97,0.15)', color: T.accentHover }, free: { bg: 'rgba(52,211,153,0.15)', color: '#059669' }, done: { bg: 'rgba(0,0,0,0.06)', color: T.text3 } }
+    const c = colors[badgeType]
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: dot, flexShrink: 0 }} />
@@ -108,76 +70,47 @@ function CalRow({ dot, name, time, badge, badgeType }) {
                 <div style={{ fontSize: 12, fontWeight: 600, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
                 <div style={{ fontSize: 11, color: T.text3, marginTop: 1 }}>{time}</div>
             </div>
-            <span style={{ fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', background: bc.bg, color: bc.color }}>{badge}</span>
+            <span style={{ fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 6, whiteSpace: 'nowrap', background: c.bg, color: c.color }}>{badge}</span>
         </div>
     )
 }
 
-/* Email row */
-function EmailRow({ avatar, avatientBg, from, subject, tag, tagType }) {
-    const tagColors = {
-        reply: { bg: 'rgba(244,162,97,0.15)', color: T.accentHover },
-        review: { bg: 'rgba(99,102,241,0.12)', color: T.dusk },
-    }
-    const tc = tagColors[tagType]
+function EmailRow({ avatar, avatarBg, from, subject, tag, tagType }) {
+    const colors = { reply: { bg: 'rgba(244,162,97,0.15)', color: T.accentHover }, review: { bg: 'rgba(99,102,241,0.12)', color: T.dusk } }
+    const c = colors[tagType]
     return (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 10px', borderRadius: 10, background: T.surface }}>
-            <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'white', flexShrink: 0, marginTop: 1, background: avatientBg }}>{avatar}</div>
+            <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'white', flexShrink: 0, marginTop: 1, background: avatarBg }}>{avatar}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{from}</div>
                 <div style={{ fontSize: 11, color: T.text2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>{subject}</div>
-                <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, whiteSpace: 'nowrap', marginTop: 4, display: 'inline-block', background: tc.bg, color: tc.color }}>{tag}</span>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 5, whiteSpace: 'nowrap', marginTop: 4, display: 'inline-block', background: c.bg, color: c.color }}>{tag}</span>
             </div>
         </div>
     )
 }
 
-/* Task item */
 function TaskItem({ done, text }) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-                width: 14, height: 14, borderRadius: 4, flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                ...(done
-                    ? { background: T.success, border: `1.5px solid ${T.success}` }
-                    : { border: `1.5px solid ${T.border}` }
-                )
-            }}>
-                {done && (
-                    <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-                        <polyline points="1 3 3 5 7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                )}
+            <div style={{ width: 14, height: 14, borderRadius: 4, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', ...(done ? { background: T.success, border: `1.5px solid ${T.success}` } : { border: `1.5px solid ${T.border}` }) }}>
+                {done && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><polyline points="1 3 3 5 7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
             </div>
-            <span style={{
-                fontSize: 12, fontWeight: 500, color: done ? T.text3 : T.text,
-                textDecoration: done ? 'line-through' : 'none',
-            }}>{text}</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: done ? T.text3 : T.text, textDecoration: done ? 'line-through' : 'none' }}>{text}</span>
         </div>
     )
 }
 
-/* Pagination dots */
 function CarouselDots({ count, active }) {
     return (
         <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 8 }}>
             {Array.from({ length: count }, (_, i) => (
-                <div key={i} style={{
-                    width: i === active ? 16 : 6,
-                    height: 6,
-                    borderRadius: i === active ? 3 : '50%',
-                    background: i === active ? T.dawn : T.border,
-                    transition: 'all 0.3s ease',
-                }} />
+                <div key={i} style={{ width: i === active ? 16 : 6, height: 6, borderRadius: i === active ? 3 : '50%', background: i === active ? T.dawn : T.border, transition: 'all 0.3s ease' }} />
             ))}
         </div>
     )
 }
 
-/* ═══════════════════════════════════════════════════
-   MAIN COMPONENT
-   ═══════════════════════════════════════════════════ */
 export default function WhyConnect({ onContinue }) {
     const scrollRef = useRef(null)
     const [activeSlide, setActiveSlide] = useState(0)
@@ -191,24 +124,25 @@ export default function WhyConnect({ onContinue }) {
 
     return (
         <div style={{
+            // ─── CHAVE: position fixed + 100dvh ───
+            position: 'fixed',
+            inset: 0,
             display: 'flex',
             flexDirection: 'column',
-            height: '100dvh',
-            maxHeight: '100dvh',
-            overflow: 'hidden',
+            // safe area aplicada AQUI, não nos filhos
             paddingTop: 'env(safe-area-inset-top, 0px)',
-            paddingBottom: 0,
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             background: T.bg,
             maxWidth: 420,
             margin: '0 auto',
-            position: 'relative',
+            left: 0,
+            right: 0,
+            // overflow hidden APENAS no container raiz pra evitar qualquer leak
+            overflow: 'hidden',
         }}>
 
-            {/* ══════════════════════════════════════
-               HEADER — fixed, never scrolls
-               ══════════════════════════════════════ */}
+            {/* ── HEADER — nunca scrolla ── */}
             <div style={{ flexShrink: 0, padding: '16px 24px 0' }}>
-
                 {/* Topbar */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
@@ -232,12 +166,7 @@ export default function WhyConnect({ onContinue }) {
                     style={{ marginBottom: 20 }}
                 >
                     <h1 className="whyconnect-title" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 30, fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.025em', color: T.text }}>
-                        Como a IA<br />organiza <em style={{
-                            fontStyle: 'normal',
-                            background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`,
-                            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                        }}>seu dia</em>
+                        Como a IA<br />organiza <em style={{ fontStyle: 'normal', background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>seu dia</em>
                     </h1>
                     <p className="whyconnect-subtitle" style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: T.text2, maxWidth: 300 }}>
                         Conecte suas ferramentas uma vez. A IA cuida do resto todo dia.
@@ -245,29 +174,24 @@ export default function WhyConnect({ onContinue }) {
                 </motion.div>
             </div>
 
-            {/* ══════════════════════════════════════
-               CARDS AREA — scrollable, takes remaining space
-               ══════════════════════════════════════ */}
+            {/* ── CARDS AREA — scrolla, ocupa o espaço restante ── */}
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="cards-scroll-area"
                 style={{
                     flex: 1,
-                    minHeight: 0,
+                    minHeight: 0,          // ← CRÍTICO: sem isso o flex não comprime no iOS
                     overflowY: 'auto',
                     overflowX: 'hidden',
                     WebkitOverflowScrolling: 'touch',
-                    padding: '0 20px',
-                    paddingBottom: 16,
+                    padding: '0 20px 16px',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 12,
                     scrollbarWidth: 'none',
                 }}
             >
-
                 {/* Card 1: Google Calendar */}
                 <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
                     <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%)' }} />
@@ -296,12 +220,12 @@ export default function WhyConnect({ onContinue }) {
                         </div>
                     </div>
                     <div style={previewStyle}>
-                        <EmailRow avatar="M" avatientBg="linear-gradient(135deg, #EA4335, #FBBC04)" from="Maria · Product" subject="Aprovação do wireframe Q2" tag="↩ responder hoje" tagType="reply" />
-                        <EmailRow avatar="R" avatientBg="linear-gradient(135deg, #4285F4, #34A853)" from="Rafael · Tech Lead" subject="PR #142 — revisão pendente" tag="👁 revisar" tagType="review" />
+                        <EmailRow avatar="M" avatarBg="linear-gradient(135deg, #EA4335, #FBBC04)" from="Maria · Product" subject="Aprovação do wireframe Q2" tag="↩ responder hoje" tagType="reply" />
+                        <EmailRow avatar="R" avatarBg="linear-gradient(135deg, #4285F4, #34A853)" from="Rafael · Tech Lead" subject="PR #142 — revisão pendente" tag="👁 revisar" tagType="review" />
                     </div>
                 </motion.div>
 
-                {/* Card 3: AI — with carousel */}
+                {/* Card 3: AI */}
                 <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
                     <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%)' }} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -312,28 +236,14 @@ export default function WhyConnect({ onContinue }) {
                         </div>
                     </div>
 
-                    {/* Carousel scroll */}
                     <div
                         ref={scrollRef}
                         onScroll={handleScroll}
-                        className="cards-scroll-area"
-                        style={{
-                            display: 'flex',
-                            overflowX: 'auto',
-                            scrollSnapType: 'x mandatory',
-                            WebkitOverflowScrolling: 'touch',
-                            gap: 12,
-                            borderRadius: 12,
-                            background: T.surface2,
-                            padding: '12px 14px',
-                            minHeight: 0,
-                            scrollbarWidth: 'none',
-                        }}
+                        style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 12, borderRadius: 12, background: T.surface2, padding: '12px 14px', scrollbarWidth: 'none' }}
                     >
-                        {/* Slide 1 — Briefing de hoje */}
                         <div style={slideStyle}>
-                            <div style={aiLabelStyle(T.accent)}>
-                                <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.accent, animation: 'pulse 1.5s ease-in-out infinite' }} />
+                            <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.accent, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.accent }} />
                                 DayOS · Briefing de hoje
                             </div>
                             <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
@@ -345,10 +255,8 @@ export default function WhyConnect({ onContinue }) {
                                 <TaskItem done={false} text="Preparar pauta do 1:1" />
                             </div>
                         </div>
-
-                        {/* Slide 2 — Recap de ontem */}
                         <div style={slideStyle}>
-                            <div style={aiLabelStyle(T.dusk)}>
+                            <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.dusk, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.dusk }} />
                                 DayOS · Recap de ontem
                             </div>
@@ -359,21 +267,14 @@ export default function WhyConnect({ onContinue }) {
                                 <TaskItem done text="Enviar proposta Q2" />
                                 <TaskItem done text="Code review sprint 14" />
                             </div>
-                            <div style={{ fontSize: 11, color: T.text3, marginTop: 8, fontStyle: 'italic' }}>
-                                Amanhã: foco no PR e na apresentação.
-                            </div>
+                            <div style={{ fontSize: 11, color: T.text3, marginTop: 8, fontStyle: 'italic' }}>Amanhã: foco no PR e na apresentação.</div>
                         </div>
                     </div>
-
-                    {/* Dots — inside the card, within scroll area */}
                     <CarouselDots count={2} active={activeSlide} />
                 </motion.div>
-
             </motion.div>
 
-            {/* ══════════════════════════════════════
-               FOOTER — fixed, never scrolls
-               ══════════════════════════════════════ */}
+            {/* ── FOOTER — nunca scrolla ── */}
             <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -385,18 +286,8 @@ export default function WhyConnect({ onContinue }) {
                 }}
             >
                 {/* Privacy pill */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '11px 16px', borderRadius: 14,
-                    background: 'rgba(52,211,153,0.08)',
-                    border: '1px solid rgba(52,211,153,0.18)',
-                    marginBottom: 16,
-                }}>
-                    <div style={{
-                        width: 28, height: 28, borderRadius: 8,
-                        background: 'rgba(52,211,153,0.15)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                    }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', borderRadius: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', marginBottom: 16 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(52,211,153,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <ShieldIcon />
                     </div>
                     <p style={{ fontSize: 12, fontWeight: 500, color: '#047857', lineHeight: 1.4 }}>
@@ -409,130 +300,43 @@ export default function WhyConnect({ onContinue }) {
                     onClick={onContinue}
                     whileHover={{ y: -2, boxShadow: '0 14px 36px rgba(244,162,97,0.38), 0 4px 12px rgba(244,162,97,0.18)' }}
                     whileTap={{ scale: 0.98 }}
-                    style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: 8, width: '100%', height: 56,
-                        border: 'none', borderRadius: 16,
-                        background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`,
-                        color: 'white',
-                        fontFamily: "'Outfit', sans-serif",
-                        fontSize: 17, fontWeight: 600,
-                        letterSpacing: '-0.01em',
-                        cursor: 'pointer',
-                        boxShadow: '0 8px 28px rgba(244,162,97,0.30), 0 2px 8px rgba(244,162,97,0.15)',
-                        position: 'relative', overflow: 'hidden',
-                        WebkitTapHighlightColor: 'transparent',
-                    }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 56, border: 'none', borderRadius: 16, background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`, color: 'white', fontFamily: "'Outfit', sans-serif", fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer', boxShadow: '0 8px 28px rgba(244,162,97,0.30), 0 2px 8px rgba(244,162,97,0.15)', position: 'relative', overflow: 'hidden', WebkitTapHighlightColor: 'transparent' }}
                 >
-                    <span style={{
-                        position: 'absolute', inset: 0,
-                        background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 55%)',
-                        pointerEvents: 'none', borderRadius: 16,
-                    }} />
-                    Entendi, vamos conectar
-                    <motion.span whileHover={{ x: 4 }} style={{ display: 'flex' }}>
-                        <ArrowIcon />
-                    </motion.span>
+                    <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 55%)', pointerEvents: 'none', borderRadius: 16 }} />
+                    Entendi, vamos lá →
                 </motion.button>
             </motion.div>
 
-            {/* ══════════════════════════════════════
-               RESPONSIVE + KEYFRAMES
-               ══════════════════════════════════════ */}
             <style>{`
-                @keyframes pulse {
-                    0%,100% { transform: scale(1); opacity: 1; }
-                    50% { transform: scale(1.4); opacity: 0.6; }
-                }
-                .cards-scroll-area::-webkit-scrollbar { display: none; }
-                @media (max-height: 680px) {
-                    .whyconnect-title { font-size: 26px !important; }
-                    .whyconnect-subtitle { font-size: 13px !important; margin-bottom: 8px !important; }
-                    .feature-card { padding: 14px 14px 12px !important; }
-                }
-                @media (max-height: 580px) {
-                    .whyconnect-title { font-size: 22px !important; }
-                    .whyconnect-subtitle { display: none !important; }
-                    .card-subtitle { display: none !important; }
-                }
-                @media (prefers-reduced-motion: reduce) {
-                    *, *::before, *::after {
-                        animation-duration: 0.01ms !important;
-                        transition-duration: 0.01ms !important;
-                    }
-                }
-            `}</style>
+        .cards-scroll-area::-webkit-scrollbar, * { scrollbar-width: none; }
+        *::-webkit-scrollbar { display: none; }
+        @keyframes pulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.4); opacity:0.6; } }
+        @media (max-height: 680px) {
+          .whyconnect-title { font-size: 26px !important; }
+          .whyconnect-subtitle { font-size: 13px !important; margin-bottom: 8px !important; }
+          .feature-card { padding: 14px 14px 12px !important; }
+        }
+        @media (max-height: 580px) {
+          .whyconnect-title { font-size: 22px !important; }
+          .whyconnect-subtitle { display: none !important; }
+          .card-subtitle { display: none !important; }
+        }
+      `}</style>
         </div>
     )
 }
 
-/* ═══════════════════════════════════════════════════
-   SHARED STYLE OBJECTS
-   ═══════════════════════════════════════════════════ */
 const cardStyle = {
-    background: T.surface,
-    borderRadius: 20,
-    border: `1px solid ${T.border}`,
+    background: T.surface, borderRadius: 20, border: `1px solid ${T.border}`,
     padding: '18px 18px 16px',
     boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03)',
-    position: 'relative',
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
+    position: 'relative', overflow: 'hidden',
+    display: 'flex', flexDirection: 'column', gap: 12,
     flexShrink: 0,
 }
-
-const overlayGradient = {
-    position: 'absolute',
-    inset: 0,
-    borderRadius: 20,
-    opacity: 1,
-    pointerEvents: 'none',
-}
-
-const iconBoxStyle = {
-    width: 38, height: 38, borderRadius: 11,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    flexShrink: 0,
-}
-
-const cardTitleStyle = {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: 15, fontWeight: 600,
-    letterSpacing: '-0.01em', color: T.text,
-    lineHeight: 1.2,
-}
-
-const cardSubStyle = {
-    fontSize: 12, color: T.text3,
-    marginTop: 2, fontWeight: 400,
-}
-
-const previewStyle = {
-    borderRadius: 12,
-    background: T.surface2,
-    padding: '12px 14px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-    overflow: 'visible',
-}
-
-const slideStyle = {
-    minWidth: '85%',
-    flexShrink: 0,
-    scrollSnapAlign: 'start',
-    borderRadius: 12,
-    background: T.surface,
-    padding: '10px 14px',
-}
-
-const aiLabelStyle = (color) => ({
-    fontSize: 10, fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '0.07em',
-    color,
-    marginBottom: 6,
-    display: 'flex', alignItems: 'center', gap: 5,
-})
+const overlayGradient = { position: 'absolute', inset: 0, borderRadius: 20, pointerEvents: 'none' }
+const iconBoxStyle = { width: 38, height: 38, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+const cardTitleStyle = { fontFamily: "'Outfit', sans-serif", fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', color: T.text, lineHeight: 1.2 }
+const cardSubStyle = { fontSize: 12, color: T.text3, marginTop: 2, fontWeight: 400 }
+const previewStyle = { borderRadius: 12, background: T.surface2, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }
+const slideStyle = { minWidth: '85%', flexShrink: 0, scrollSnapAlign: 'start', borderRadius: 12, background: T.surface, padding: '10px 14px' }
