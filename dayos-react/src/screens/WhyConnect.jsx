@@ -11,7 +11,7 @@ const T = {
     accent: '#F4A261',
     accentHover: '#E8955A',
     accentGlow: 'rgba(244,162,97,0.22)',
-    accentLight: 'rgba(244,162,97,0.10)',
+    accentLight: 'rgba(244,167,108,0.10)',
     dawn: '#F4A261',
     sunrise: '#E76F51',
     dusk: '#6366F1',
@@ -122,9 +122,7 @@ function EmailRow({ avatar, avatientBg, from, subject, tag, tagType }) {
     const tc = tagColors[tagType]
     return (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 10px', borderRadius: 10, background: T.surface }}>
-            <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'white', flexShrink: 0, marginTop: 1, background: avatientBg }}>
-                {avatar}
-            </div>
+            <div style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'white', flexShrink: 0, marginTop: 1, background: avatientBg }}>{avatar}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{from}</div>
                 <div style={{ fontSize: 11, color: T.text2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>{subject}</div>
@@ -193,69 +191,86 @@ export default function WhyConnect({ onContinue }) {
 
     return (
         <div style={{
-            position: 'fixed', inset: 0,
-            display: 'flex', flexDirection: 'column',
-            paddingTop: 'calc(env(safe-area-inset-top, 16px) + 16px)',
-            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
-            maxWidth: 420, margin: '0 auto',
-            left: 0, right: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100dvh',
+            maxHeight: '100dvh',
+            overflow: 'hidden',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            paddingBottom: 0,
             background: T.bg,
+            maxWidth: 420,
+            margin: '0 auto',
+            position: 'relative',
         }}>
 
-            {/* ── Topbar ── */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', marginBottom: 28 }}>
-                <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
-                    DayOS<span style={{ display: 'inline-block', width: 5, height: 5, background: T.accent, borderRadius: '50%', marginLeft: 1, verticalAlign: 'middle', position: 'relative', top: -1 }} />
-                </span>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: T.text3, background: T.surface2, padding: '5px 12px', borderRadius: 20 }}>
-                    Passo 2 de 5
-                </span>
+            {/* ══════════════════════════════════════
+               HEADER — fixed, never scrolls
+               ══════════════════════════════════════ */}
+            <div style={{ flexShrink: 0, padding: '16px 24px 0' }}>
+
+                {/* Topbar */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                    <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
+                        DayOS<span style={{ display: 'inline-block', width: 5, height: 5, background: T.accent, borderRadius: '50%', marginLeft: 1, verticalAlign: 'middle', position: 'relative', top: -1 }} />
+                    </span>
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: T.text3, background: T.surface2, padding: '5px 12px', borderRadius: 20 }}>
+                        Passo 2 de 5
+                    </span>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ width: '100%', height: 3, borderRadius: 1.5, background: T.border, marginBottom: 24, overflow: 'hidden' }}>
+                    <div style={{ width: '40%', height: '100%', borderRadius: 1.5, background: `linear-gradient(90deg, ${T.dawn}, ${T.sunrise})`, transition: 'width 0.6s cubic-bezier(0.23,1,0.32,1)' }} />
+                </div>
+
+                {/* Headline */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
+                    style={{ marginBottom: 20 }}
+                >
+                    <h1 className="whyconnect-title" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 30, fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.025em', color: T.text }}>
+                        Como a IA<br />organiza <em style={{
+                            fontStyle: 'normal',
+                            background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`,
+                            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                        }}>seu dia</em>
+                    </h1>
+                    <p className="whyconnect-subtitle" style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: T.text2, maxWidth: 300 }}>
+                        Conecte suas ferramentas uma vez. A IA cuida do resto todo dia.
+                    </p>
+                </motion.div>
             </div>
 
-            {/* ── Progress ── */}
-            <div style={{ width: 'calc(100% - 48px)', height: 3, borderRadius: 1.5, background: T.border, margin: '0 24px 32px', overflow: 'hidden' }}>
-                <div style={{ width: '40%', height: '100%', borderRadius: 1.5, background: `linear-gradient(90deg, ${T.dawn}, ${T.sunrise})`, transition: 'width 0.6s cubic-bezier(0.23,1,0.32,1)' }} />
-            </div>
-
-            {/* ── Headline ── */}
-            <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
-                style={{ padding: '0 24px', marginBottom: 28 }}
-                className="headline-area"
-            >
-                <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 30, fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.025em', color: T.text }}>
-                    Como a IA<br />organiza <em style={{
-                        fontStyle: 'normal',
-                        background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`,
-                        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                    }}>seu dia</em>
-                </h1>
-                <p className="headline-subtitle" style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: T.text2, maxWidth: 300 }}>
-                    Conecte suas ferramentas uma vez. A IA cuida do resto todo dia.
-                </p>
-            </motion.div>
-
-            {/* ── Cards area ── */}
+            {/* ══════════════════════════════════════
+               CARDS AREA — scrollable, takes remaining space
+               ══════════════════════════════════════ */}
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
+                className="cards-scroll-area"
                 style={{
                     flex: 1,
+                    minHeight: 0,
                     overflowY: 'auto',
+                    overflowX: 'hidden',
                     WebkitOverflowScrolling: 'touch',
                     padding: '0 20px',
-                    display: 'flex', flexDirection: 'column', gap: 12,
+                    paddingBottom: 16,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12,
+                    scrollbarWidth: 'none',
                 }}
-                className="cards-area"
             >
 
                 {/* Card 1: Google Calendar */}
                 <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
-                    <div style={{ ...cardStyle.before, background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%)' }} />
+                    <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%)' }} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ ...iconBoxStyle, background: 'rgba(99,102,241,0.10)' }}><CalendarIcon /></div>
                         <div>
@@ -272,7 +287,7 @@ export default function WhyConnect({ onContinue }) {
 
                 {/* Card 2: Gmail */}
                 <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
-                    <div style={{ ...cardStyle.before, background: 'linear-gradient(135deg, rgba(234,67,53,0.04) 0%, transparent 60%)' }} />
+                    <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(234,67,53,0.04) 0%, transparent 60%)' }} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ ...iconBoxStyle, background: 'rgba(234,67,53,0.08)' }}><GmailIcon /></div>
                         <div>
@@ -288,7 +303,7 @@ export default function WhyConnect({ onContinue }) {
 
                 {/* Card 3: AI — with carousel */}
                 <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
-                    <div style={{ ...cardStyle.before, background: 'linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%)' }} />
+                    <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%)' }} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ ...iconBoxStyle, background: T.accentLight }}><AiIcon /></div>
                         <div>
@@ -301,6 +316,7 @@ export default function WhyConnect({ onContinue }) {
                     <div
                         ref={scrollRef}
                         onScroll={handleScroll}
+                        className="cards-scroll-area"
                         style={{
                             display: 'flex',
                             overflowX: 'auto',
@@ -349,25 +365,32 @@ export default function WhyConnect({ onContinue }) {
                         </div>
                     </div>
 
+                    {/* Dots — inside the card, within scroll area */}
                     <CarouselDots count={2} active={activeSlide} />
                 </motion.div>
 
             </motion.div>
 
-            {/* ── Privacy pill + CTA ── */}
+            {/* ══════════════════════════════════════
+               FOOTER — fixed, never scrolls
+               ══════════════════════════════════════ */}
             <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.85, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-                style={{ flexShrink: 0 }}
+                style={{
+                    flexShrink: 0,
+                    padding: '12px 20px',
+                    paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
+                }}
             >
                 {/* Privacy pill */}
                 <div style={{
-                    margin: '12px 20px 0',
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '11px 16px', borderRadius: 14,
                     background: 'rgba(52,211,153,0.08)',
                     border: '1px solid rgba(52,211,153,0.18)',
+                    marginBottom: 16,
                 }}>
                     <div style={{
                         width: 28, height: 28, borderRadius: 8,
@@ -382,55 +405,63 @@ export default function WhyConnect({ onContinue }) {
                 </div>
 
                 {/* CTA */}
-                <div style={{ padding: '16px 24px 0' }}>
-                    <motion.button
-                        onClick={onContinue}
-                        whileHover={{ y: -2, boxShadow: '0 14px 36px rgba(244,162,97,0.38), 0 4px 12px rgba(244,162,97,0.18)' }}
-                        whileTap={{ scale: 0.98 }}
-                        style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            gap: 8, width: '100%', height: 56,
-                            border: 'none', borderRadius: 16,
-                            background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`,
-                            color: 'white',
-                            fontFamily: "'Outfit', sans-serif",
-                            fontSize: 17, fontWeight: 600,
-                            letterSpacing: '-0.01em',
-                            cursor: 'pointer',
-                            boxShadow: '0 8px 28px rgba(244,162,97,0.30), 0 2px 8px rgba(244,162,97,0.15)',
-                            position: 'relative', overflow: 'hidden',
-                            WebkitTapHighlightColor: 'transparent',
-                        }}
-                    >
-                        <span style={{
-                            position: 'absolute', inset: 0,
-                            background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 55%)',
-                            pointerEvents: 'none', borderRadius: 16,
-                        }} />
-                        Entendi, vamos conectar
-                        <motion.span whileHover={{ x: 4 }} style={{ display: 'flex' }}>
-                            <ArrowIcon />
-                        </motion.span>
-                    </motion.button>
-                </div>
+                <motion.button
+                    onClick={onContinue}
+                    whileHover={{ y: -2, boxShadow: '0 14px 36px rgba(244,162,97,0.38), 0 4px 12px rgba(244,162,97,0.18)' }}
+                    whileTap={{ scale: 0.98 }}
+                    style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        gap: 8, width: '100%', height: 56,
+                        border: 'none', borderRadius: 16,
+                        background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`,
+                        color: 'white',
+                        fontFamily: "'Outfit', sans-serif",
+                        fontSize: 17, fontWeight: 600,
+                        letterSpacing: '-0.01em',
+                        cursor: 'pointer',
+                        boxShadow: '0 8px 28px rgba(244,162,97,0.30), 0 2px 8px rgba(244,162,97,0.15)',
+                        position: 'relative', overflow: 'hidden',
+                        WebkitTapHighlightColor: 'transparent',
+                    }}
+                >
+                    <span style={{
+                        position: 'absolute', inset: 0,
+                        background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 55%)',
+                        pointerEvents: 'none', borderRadius: 16,
+                    }} />
+                    Entendi, vamos conectar
+                    <motion.span whileHover={{ x: 4 }} style={{ display: 'flex' }}>
+                        <ArrowIcon />
+                    </motion.span>
+                </motion.button>
             </motion.div>
 
-            {/* Inline keyframes for pulse */}
+            {/* ══════════════════════════════════════
+               RESPONSIVE + KEYFRAMES
+               ══════════════════════════════════════ */}
             <style>{`
-        @keyframes pulse {
-          0%,100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.4); opacity: 0.6; }
-        }
-        @media (max-height: 680px) {
-          .headline-area h1 { font-size: 22px !important; }
-          .feature-card { padding: 12px !important; }
-          .cards-area { gap: 8px !important; }
-          .headline-subtitle { display: none !important; }
-        }
-        @media (max-height: 580px) {
-          .card-subtitle { display: none !important; }
-        }
-      `}</style>
+                @keyframes pulse {
+                    0%,100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.4); opacity: 0.6; }
+                }
+                .cards-scroll-area::-webkit-scrollbar { display: none; }
+                @media (max-height: 680px) {
+                    .whyconnect-title { font-size: 26px !important; }
+                    .whyconnect-subtitle { font-size: 13px !important; margin-bottom: 8px !important; }
+                    .feature-card { padding: 14px 14px 12px !important; }
+                }
+                @media (max-height: 580px) {
+                    .whyconnect-title { font-size: 22px !important; }
+                    .whyconnect-subtitle { display: none !important; }
+                    .card-subtitle { display: none !important; }
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    *, *::before, *::after {
+                        animation-duration: 0.01ms !important;
+                        transition-duration: 0.01ms !important;
+                    }
+                }
+            `}</style>
         </div>
     )
 }
@@ -449,15 +480,15 @@ const cardStyle = {
     display: 'flex',
     flexDirection: 'column',
     gap: 12,
-    minHeight: 'fit-content',
-    before: {
-        position: 'absolute',
-        inset: 0,
-        borderRadius: 20,
-        opacity: 1,
-        pointerEvents: 'none',
-        content: '',
-    },
+    flexShrink: 0,
+}
+
+const overlayGradient = {
+    position: 'absolute',
+    inset: 0,
+    borderRadius: 20,
+    opacity: 1,
+    pointerEvents: 'none',
 }
 
 const iconBoxStyle = {
@@ -485,7 +516,6 @@ const previewStyle = {
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
-    minHeight: 0,
     overflow: 'visible',
 }
 
