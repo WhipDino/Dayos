@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
+body {
+  height: 100%;
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #FAF8F5;
+  color: #2D2D2D;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Hide scrollbar globally for iOS feel */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
