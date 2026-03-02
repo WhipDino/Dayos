@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { flushSync } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const T = {
@@ -7,15 +8,6 @@ const T = {
     accentGlow: 'rgba(244,162,97,0.22)', accentLight: 'rgba(244,167,108,0.10)',
     dawn: '#F4A261', sunrise: '#E76F51', dusk: '#6366F1', success: '#34D399',
     text: '#2D2D2D', text2: '#6B6B6B', text3: '#9B9790', border: '#ECEAE7',
-}
-
-const containerVariants = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.22, delayChildren: 0.3 } }
-}
-const cardVariants = {
-    hidden: { opacity: 0, y: 44 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.23, 1, 0.32, 1] } }
 }
 
 const CalendarIcon = () => (
@@ -107,118 +99,285 @@ function CarouselDots({ count, active }) {
 
 export default function WhyConnect({ onContinue }) {
     const scrollRef = useRef(null)
+    const cloneScrollRef = useRef(null)
     const cardsContainerRef = useRef(null)
     const cardRefs = [useRef(null), useRef(null), useRef(null)]
     const [activeSlide, setActiveSlide] = useState(0)
 
-    // Animation phases: 'entering' | 'zoom-in-N' | 'hold-N' | 'zoom-out-N' | 'normal'
-    const [phase, setPhase] = useState('entering')
-    // Transform for the zoomed card { translateY, scale }
-    const [zoomStyle, setZoomStyle] = useState(null)
+    const [entered, setEntered] = useState(false)
+
+    useEffect(() => {
+        // Trigger enter animation after mount
+        const t = setTimeout(() => setEntered(true), 50)
+        return () => clearTimeout(t)
+    }, [])
+
+    // FLIP Animation state
+    const [animState, setAnimState] = useState({
+        phase: 'idle', // 'idle' | 'fly-in' | 'hold' | 'fly-out'
+        activeIndex: -1,
+        queue: [0, 1, 2],
+        rect: null,
+        cloneStyle: {}
+    });
 
     const handleScroll = () => {
         const el = scrollRef.current
         if (!el) return
-        const slide = Math.round(el.scrollLeft / (el.firstElementChild?.offsetWidth + 12 || 1))
+        const slide = Math.round(el.scrollLeft / (el.firstElementChild?.offsetWidth + 24 || 1))
         setActiveSlide(slide)
     }
 
-    // Calculate transform to center a card on the entire screen (viewport)
-    const calcCenterTransform = (cardIndex) => {
-        const card = cardRefs[cardIndex]?.current
-        if (!card) return { translateY: 0, scale: 1.08 }
-
-        const cardRect = card.getBoundingClientRect()
-        const cardCenterY = cardRect.top + cardRect.height / 2
-        const screenCenterY = window.innerHeight / 2
-        const translateY = screenCenterY - cardCenterY
-
-        return { translateY, scale: 1.08 }
-    }
-
-    // Spotlight zoom sequence
+    // Process the queue
     useEffect(() => {
-        const STAGGER_WAIT = 1800
-        const ZOOM_IN = 500
-        const HOLD = 1500
-        const ZOOM_OUT = 500
-        const GAP = 300
+        if (animState.phase !== 'idle' || animState.queue.length === 0) return;
 
-        const timers = []
-        const t = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id) }
+        const nextIndex = animState.queue[0];
+        const cardEl = cardRefs[nextIndex].current;
+        if (!cardEl) return;
 
-        const animateCard = (index, startAt) => {
-            // Calculate transform and zoom in to absolute center of screen
-            t(() => {
-                setPhase(`zoom-in-${index}`)
-                setZoomStyle(calcCenterTransform(index))
-            }, startAt)
+        const STAGGER_WAIT = nextIndex === 0 ? 700 : 200;
+        let t1, t2, t3, t4, t5, t6, t7, t8, t9;
 
-            // Hold
-            t(() => {
-                setPhase(`hold-${index}`)
-            }, startAt + ZOOM_IN)
+        const executeFlyOut = () => {
+            // Re-calculate pos in case of user scroll
+            const newRect = cardRefs[nextIndex].current.getBoundingClientRect();
 
-            // Zoom out back to original slot
-            t(() => {
-                setPhase(`zoom-out-${index}`)
-                setZoomStyle(null)
-            }, startAt + ZOOM_IN + HOLD)
-        }
-
-        const cardDuration = ZOOM_IN + HOLD + ZOOM_OUT + GAP
-
-        animateCard(0, STAGGER_WAIT)
-        animateCard(1, STAGGER_WAIT + cardDuration)
-        animateCard(2, STAGGER_WAIT + cardDuration * 2)
-
-        // Return to normal
-        t(() => {
-            setPhase('normal')
-            setZoomStyle(null)
-            if (cardsContainerRef.current) {
-                cardsContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' })
-            }
-        }, STAGGER_WAIT + cardDuration * 3)
-
-        return () => timers.forEach(clearTimeout)
-    }, [])
-
-    // Parse phase
-    const phaseMatch = phase.match(/^(zoom-in|hold|zoom-out)-(\d)$/)
-    const isAnimating = !!phaseMatch
-    const activeCardIndex = phaseMatch ? parseInt(phaseMatch[2]) : -1
-    const isZoomedIn = phase.startsWith('zoom-in-') || phase.startsWith('hold-')
-
-    // Dynamic styles for each card
-    const getCardAnimStyle = (cardIndex) => {
-        if (!isAnimating) return {}
-
-        if (cardIndex === activeCardIndex) {
-            if (isZoomedIn && zoomStyle) {
-                return {
-                    transform: `translateY(${zoomStyle.translateY}px) scale(${zoomStyle.scale})`,
-                    boxShadow: '0 20px 60px rgba(244,162,97,0.30), 0 8px 24px rgba(0,0,0,0.12)',
-                    zIndex: 30,
-                    transition: 'transform 0.5s cubic-bezier(0.23,1,0.32,1), box-shadow 0.5s cubic-bezier(0.23,1,0.32,1)',
+            setAnimState(prev => ({
+                ...prev,
+                phase: 'fly-out',
+                cloneStyle: {
+                    left: newRect.left,
+                    top: newRect.top,
+                    width: newRect.width,
+                    height: newRect.height,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03)',
+                    transition: 'all 600ms cubic-bezier(0.23, 1, 0.32, 1)'
                 }
-            }
-            // zoom-out: return to original position
-            return {
-                transform: 'translateY(0) scale(1)',
-                zIndex: 20,
-                transition: 'transform 0.5s cubic-bezier(0.23,1,0.32,1), box-shadow 0.5s cubic-bezier(0.23,1,0.32,1)',
-            }
-        }
+            }));
 
-        // Non-active cards: dim and blur
-        return {
-            opacity: 0.2,
-            filter: 'blur(3px)',
-            transform: 'scale(0.96)',
-            transition: 'all 0.5s cubic-bezier(0.23,1,0.32,1)',
+            // Phase 5: cleanup and trigger next
+            t6 = setTimeout(() => {
+                flushSync(() => {
+                    setAnimState(prev => ({
+                        phase: 'idle',
+                        activeIndex: -1,
+                        queue: prev.queue.slice(1),
+                        rect: null,
+                        cloneStyle: {}
+                    }));
+                });
+
+                if (nextIndex === 2 && cardsContainerRef.current) {
+                    cardsContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 600); // transition duration
+        };
+
+        t1 = setTimeout(() => {
+            // Scroll the container to ensure the card is in view
+            cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Wait for scroll
+            t2 = setTimeout(() => {
+                // Snapshot original position
+                const rect = cardRefs[nextIndex].current.getBoundingClientRect();
+
+                // Phase 1: Create clone at exact position (no transition yet)
+                flushSync(() => {
+                    setAnimState(prev => ({
+                        ...prev,
+                        phase: 'fly-in',
+                        activeIndex: nextIndex,
+                        rect,
+                        cloneStyle: {
+                            left: rect.left,
+                            top: rect.top,
+                            width: rect.width,
+                            height: rect.height,
+                            boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03)',
+                            transition: 'none'
+                        }
+                    }));
+                });
+
+                // Phase 2: Next frame -> animate to center and expand slightly
+                t3 = setTimeout(() => {
+                    const vw = window.innerWidth;
+                    const vh = window.innerHeight;
+
+                    const expandedW = Math.min(vw - 32, rect.width * 1.05);
+                    const scale = expandedW / rect.width;
+                    const expandedH = rect.height * scale;
+
+                    const targetLeft = (vw - expandedW) / 2;
+                    const targetTop = (vh - expandedH) / 2;
+
+                    setAnimState(prev => ({
+                        ...prev,
+                        cloneStyle: {
+                            left: targetLeft,
+                            top: targetTop,
+                            width: expandedW,
+                            height: expandedH,
+                            boxShadow: '0 20px 60px rgba(244,162,97,0.30), 0 8px 24px rgba(0,0,0,0.12)',
+                            transition: 'all 600ms cubic-bezier(0.23, 1, 0.32, 1)'
+                        }
+                    }));
+
+                    // Phase 3: Hold
+                    t4 = setTimeout(() => {
+                        setAnimState(prev => ({ ...prev, phase: 'hold' }));
+
+                        if (nextIndex === 2) {
+                            // Phase 4 for Card 3: Animate the scroll inside the clone
+                            // Extra 400ms before scrolling starts
+                            t7 = setTimeout(() => {
+                                if (cloneScrollRef.current) {
+                                    cloneScrollRef.current.scrollTo({ left: cloneScrollRef.current.scrollWidth / 2, behavior: 'smooth' });
+                                }
+                                // Hold on slide 2 for 800ms
+                                t8 = setTimeout(() => {
+                                    if (cloneScrollRef.current) {
+                                        cloneScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+                                    }
+                                    // Wait for scroll back before flying out (400ms)
+                                    t9 = setTimeout(() => {
+                                        executeFlyOut();
+                                    }, 400);
+                                }, 800);
+                            }, 400);
+                        } else {
+                            // Phase 4: Fly back to original pos directly (for normal cards)
+                            t5 = setTimeout(() => {
+                                executeFlyOut();
+                            }, 900); // hold time
+                        }
+                    }, 600); // fly-in transition time
+                }, 30); // paint delay
+            }, 400); // scroll duration
+        }, STAGGER_WAIT);
+
+        return () => {
+            clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+            clearTimeout(t4); clearTimeout(t5); clearTimeout(t6);
+            clearTimeout(t7); clearTimeout(t8); clearTimeout(t9);
+        };
+    }, [animState.queue]);
+
+    const isAnimating = animState.phase !== 'idle';
+
+    const getOriginalCardStyle = (index) => {
+        if (!entered) {
+            return {
+                opacity: 0,
+                transform: 'translateY(44px)',
+                transition: 'all 0.65s cubic-bezier(0.23,1,0.32,1)',
+                transitionDelay: `${index * 220}ms`
+            };
         }
+        if (isAnimating && animState.activeIndex === index) {
+            return { opacity: 0, transition: 'none' };
+        }
+        if (isAnimating) {
+            return {
+                opacity: 0.1,
+                filter: 'blur(4px)',
+                transform: 'scale(0.96)',
+                transition: 'none'
+            };
+        }
+        return {
+            opacity: 1,
+            filter: 'none',
+            transform: 'scale(1)',
+            transition: 'all 600ms cubic-bezier(0.23,1,0.32,1)'
+        };
     }
+
+    const renderCardInternals = (index, isClone = false) => {
+        if (index === 0) return (
+            <>
+                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ ...iconBoxStyle, background: 'rgba(99,102,241,0.10)' }}><CalendarIcon /></div>
+                    <div>
+                        <div style={cardTitleStyle}>Lê sua agenda</div>
+                        <div style={cardSubStyle} className="card-subtitle">Reuniões, blocos livres, compromissos</div>
+                    </div>
+                </div>
+                <div style={previewStyle}>
+                    <CalRow dot="#6366F1" name="Daily com o time" time="09:30 · 30 min" badge="em breve" badgeType="soon" />
+                    <CalRow dot={T.success} name="Bloco livre" time="10:00 – 12:00" badge="livre" badgeType="free" />
+                    <CalRow dot={T.accent} name="1:1 com gestor" time="14:00 · 1h" badge="depois" badgeType="done" />
+                </div>
+            </>
+        )
+        if (index === 1) return (
+            <>
+                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(234,67,53,0.04) 0%, transparent 60%)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ ...iconBoxStyle, background: 'rgba(234,67,53,0.08)' }}><GmailIcon /></div>
+                    <div>
+                        <div style={cardTitleStyle}>Processa seus emails</div>
+                        <div style={cardSubStyle} className="card-subtitle">Identifica ações, filtra o que importa</div>
+                    </div>
+                </div>
+                <div style={previewStyle}>
+                    <EmailRow avatar="M" avatarBg="linear-gradient(135deg, #EA4335, #FBBC04)" from="Maria · Product" subject="Aprovação do wireframe Q2" tag="responder hoje" tagType="reply" />
+                    <EmailRow avatar="R" avatarBg="linear-gradient(135deg, #4285F4, #34A853)" from="Rafael · Tech Lead" subject="PR #142 — revisão pendente" tag="revisar" tagType="review" />
+                </div>
+            </>
+        )
+        if (index === 2) return (
+            <>
+                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ ...iconBoxStyle, background: T.accentLight }}><AiIcon /></div>
+                    <div>
+                        <div style={cardTitleStyle}>Monta seu dia</div>
+                        <div style={cardSubStyle} className="card-subtitle">Tarefas priorizadas nas janelas certas</div>
+                    </div>
+                </div>
+                <div
+                    ref={isClone ? cloneScrollRef : scrollRef}
+                    onScroll={isClone ? undefined : handleScroll}
+                    style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 24, borderRadius: 12, background: T.surface2, padding: '12px 24px', scrollbarWidth: 'none', marginTop: 12 }}
+                >
+                    <div style={slideStyle}>
+                        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.accent, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.accent }} />
+                            DayOS · Briefing de hoje
+                        </div>
+                        <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
+                            Você tem <span style={{ fontWeight: 600, color: T.accentHover }}>2h livres</span> antes do 1:1. Priorizei:
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            <TaskItem done text="Responder Maria sobre wireframe" />
+                            <TaskItem done={false} text="Revisar PR #142 do Rafael" />
+                            <TaskItem done={false} text="Preparar pauta do 1:1" />
+                        </div>
+                    </div>
+                    <div style={slideStyle}>
+                        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.dusk, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.dusk }} />
+                            DayOS · Recap de ontem
+                        </div>
+                        <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
+                            <span style={{ fontWeight: 600, color: T.success }}>Ótimo dia!</span> 3 de 4 tarefas concluídas.
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            <TaskItem done text="Enviar proposta Q2" />
+                            <TaskItem done text="Code review sprint 14" />
+                        </div>
+                        <div style={{ fontSize: 11, color: T.text3, marginTop: 8, fontStyle: 'italic' }}>Amanhã: foco no PR e na apresentação.</div>
+                    </div>
+                </div>
+                <CarouselDots count={2} active={activeSlide} />
+            </>
+        )
+    }
+
     return (
         <>
             <style>{`
@@ -236,6 +395,34 @@ export default function WhyConnect({ onContinue }) {
                 }
             `}</style>
 
+            {/* FLIP Clone */}
+            {isAnimating && animState.activeIndex !== -1 && (
+                <div style={{
+                    position: 'fixed',
+                    zIndex: 50,
+                    margin: 0,
+                    boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    ...cardStyle,     // base styles: background, border, etc
+                    ...animState.cloneStyle // left, top, width, height, transition
+                }}>
+                    {renderCardInternals(animState.activeIndex, true)}
+                </div>
+            )}
+
+            {/* Dark Overlay */}
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,0.35)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                zIndex: 40,
+                opacity: isAnimating ? 1 : 0,
+                pointerEvents: isAnimating ? 'auto' : 'none',
+                transition: 'opacity 600ms cubic-bezier(0.23,1,0.32,1)'
+            }} />
+
             {/* ── ROOT: absolute fullscreen, 3 zonas ── */}
             <div style={{
                 position: 'absolute',
@@ -249,7 +436,11 @@ export default function WhyConnect({ onContinue }) {
                 <div style={{ maxWidth: 420, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
 
                     {/* ── HEADER — fixo no topo ── */}
-                    <div style={{ flexShrink: 0, padding: '16px 20px 0', touchAction: 'none', opacity: isAnimating ? 0.3 : 1, filter: isAnimating ? 'blur(2px)' : 'none', transition: 'opacity 0.5s ease, filter 0.5s ease' }}>
+                    <div style={{
+                        flexShrink: 0, padding: '16px 20px 0', touchAction: 'none',
+                        opacity: isAnimating ? 0.3 : 1, filter: isAnimating ? 'blur(2px)' : 'none',
+                        transition: 'opacity 0.6s ease, filter 0.6s ease'
+                    }}>
                         {/* Topbar */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                             <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
@@ -266,19 +457,14 @@ export default function WhyConnect({ onContinue }) {
                         </div>
 
                         {/* Headline */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1, duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
-                            style={{ marginBottom: 16 }}
-                        >
+                        <div style={{ marginBottom: 16 }}>
                             <h1 className="whyconnect-title" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 30, fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.025em', color: T.text }}>
                                 Como a IA<br />organiza <em style={{ fontStyle: 'normal', background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>seu dia</em>
                             </h1>
                             <p className="whyconnect-subtitle" style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: T.text2, maxWidth: 300 }}>
                                 Conecte suas ferramentas uma vez. A IA cuida do resto todo dia.
                             </p>
-                        </motion.div>
+                        </div>
                     </div>
 
                     {/* ── CARDS — scroll vertical, display BLOCK (não flex!) ── */}
@@ -295,98 +481,26 @@ export default function WhyConnect({ onContinue }) {
                             padding: '4px 20px 16px',
                         }}
                     >
-                        <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                        >
+                        <div>
                             {/* Card 1: Google Calendar */}
-                            <motion.div ref={cardRefs[0]} variants={cardVariants} style={{ ...cardStyle, marginBottom: 12, ...getCardAnimStyle(0) }} className="feature-card">
-                                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%)' }} />
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <div style={{ ...iconBoxStyle, background: 'rgba(99,102,241,0.10)' }}><CalendarIcon /></div>
-                                    <div>
-                                        <div style={cardTitleStyle}>Lê sua agenda</div>
-                                        <div style={cardSubStyle} className="card-subtitle">Reuniões, blocos livres, compromissos</div>
-                                    </div>
-                                </div>
-                                <div style={previewStyle}>
-                                    <CalRow dot="#6366F1" name="Daily com o time" time="09:30 · 30 min" badge="em breve" badgeType="soon" />
-                                    <CalRow dot={T.success} name="Bloco livre" time="10:00 – 12:00" badge="livre" badgeType="free" />
-                                    <CalRow dot={T.accent} name="1:1 com gestor" time="14:00 · 1h" badge="depois" badgeType="done" />
-                                </div>
-                            </motion.div>
+                            <div ref={cardRefs[0]} style={{ ...cardStyle, marginBottom: 12, ...getOriginalCardStyle(0) }} className="feature-card">
+                                {renderCardInternals(0)}
+                            </div>
 
                             {/* Card 2: Gmail */}
-                            <motion.div ref={cardRefs[1]} variants={cardVariants} style={{ ...cardStyle, marginBottom: 12, ...getCardAnimStyle(1) }} className="feature-card">
-                                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(234,67,53,0.04) 0%, transparent 60%)' }} />
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <div style={{ ...iconBoxStyle, background: 'rgba(234,67,53,0.08)' }}><GmailIcon /></div>
-                                    <div>
-                                        <div style={cardTitleStyle}>Processa seus emails</div>
-                                        <div style={cardSubStyle} className="card-subtitle">Identifica ações, filtra o que importa</div>
-                                    </div>
-                                </div>
-                                <div style={previewStyle}>
-                                    <EmailRow avatar="M" avatarBg="linear-gradient(135deg, #EA4335, #FBBC04)" from="Maria · Product" subject="Aprovação do wireframe Q2" tag="responder hoje" tagType="reply" />
-                                    <EmailRow avatar="R" avatarBg="linear-gradient(135deg, #4285F4, #34A853)" from="Rafael · Tech Lead" subject="PR #142 — revisão pendente" tag="revisar" tagType="review" />
-                                </div>
-                            </motion.div>
+                            <div ref={cardRefs[1]} style={{ ...cardStyle, marginBottom: 12, ...getOriginalCardStyle(1) }} className="feature-card">
+                                {renderCardInternals(1)}
+                            </div>
 
                             {/* Card 3: AI */}
-                            <motion.div ref={cardRefs[2]} variants={cardVariants} style={{ ...cardStyle, ...getCardAnimStyle(2) }} className="feature-card">
-                                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%)' }} />
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <div style={{ ...iconBoxStyle, background: T.accentLight }}><AiIcon /></div>
-                                    <div>
-                                        <div style={cardTitleStyle}>Monta seu dia</div>
-                                        <div style={cardSubStyle} className="card-subtitle">Tarefas priorizadas nas janelas certas</div>
-                                    </div>
-                                </div>
-                                <div
-                                    ref={scrollRef}
-                                    onScroll={handleScroll}
-                                    style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 12, borderRadius: 12, background: T.surface2, padding: '12px 14px', scrollbarWidth: 'none', marginTop: 12 }}
-                                >
-                                    <div style={slideStyle}>
-                                        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.accent, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
-                                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.accent }} />
-                                            DayOS · Briefing de hoje
-                                        </div>
-                                        <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
-                                            Você tem <span style={{ fontWeight: 600, color: T.accentHover }}>2h livres</span> antes do 1:1. Priorizei:
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                                            <TaskItem done text="Responder Maria sobre wireframe" />
-                                            <TaskItem done={false} text="Revisar PR #142 do Rafael" />
-                                            <TaskItem done={false} text="Preparar pauta do 1:1" />
-                                        </div>
-                                    </div>
-                                    <div style={slideStyle}>
-                                        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.dusk, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
-                                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.dusk }} />
-                                            DayOS · Recap de ontem
-                                        </div>
-                                        <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
-                                            <span style={{ fontWeight: 600, color: T.success }}>Ótimo dia!</span> 3 de 4 tarefas concluídas.
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                                            <TaskItem done text="Enviar proposta Q2" />
-                                            <TaskItem done text="Code review sprint 14" />
-                                        </div>
-                                        <div style={{ fontSize: 11, color: T.text3, marginTop: 8, fontStyle: 'italic' }}>Amanhã: foco no PR e na apresentação.</div>
-                                    </div>
-                                </div>
-                                <CarouselDots count={2} active={activeSlide} />
-                            </motion.div>
-                        </motion.div>
+                            <div ref={cardRefs[2]} style={{ ...cardStyle, ...getOriginalCardStyle(2) }} className="feature-card">
+                                {renderCardInternals(2)}
+                            </div>
+                        </div>
                     </div>
 
                     {/* ── FOOTER — fixo embaixo ── */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.85, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                    <div
                         style={{
                             flexShrink: 0,
                             background: T.bg,
@@ -395,7 +509,7 @@ export default function WhyConnect({ onContinue }) {
                             touchAction: 'none',
                             opacity: isAnimating ? 0.3 : 1,
                             filter: isAnimating ? 'blur(2px)' : 'none',
-                            transition: 'opacity 0.5s ease, filter 0.5s ease',
+                            transition: 'opacity 0.6s ease, filter 0.6s ease',
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', borderRadius: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', marginBottom: 16 }}>
@@ -415,7 +529,7 @@ export default function WhyConnect({ onContinue }) {
                             <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 55%)', pointerEvents: 'none', borderRadius: 16 }} />
                             Entendi, vamos lá →
                         </motion.button>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </>
@@ -433,4 +547,4 @@ const iconBoxStyle = { width: 38, height: 38, borderRadius: 11, display: 'flex',
 const cardTitleStyle = { fontFamily: "'Outfit', sans-serif", fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', color: T.text, lineHeight: 1.2 }
 const cardSubStyle = { fontSize: 12, color: T.text3, marginTop: 2, fontWeight: 400 }
 const previewStyle = { borderRadius: 12, background: T.surface2, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }
-const slideStyle = { minWidth: '85%', flexShrink: 0, scrollSnapAlign: 'start', borderRadius: 12, background: T.surface, padding: '10px 14px' }
+const slideStyle = { minWidth: '100%', width: '100%', flexShrink: 0, scrollSnapAlign: 'center', borderRadius: 12, background: T.surface, padding: '12px 16px', boxSizing: 'border-box' }
