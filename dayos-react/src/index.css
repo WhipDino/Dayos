@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -8,8 +10,7 @@
 
 html {
   height: 100%;
-  overflow: hidden;
-  touch-action: none;
+  /* NÃO overflow:hidden aqui — impede scroll interno no iOS */
 }
 
 body {
@@ -18,7 +19,7 @@ body {
   background: #FAF8F5;
   color: #2D2D2D;
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
+  /* NÃO overflow:hidden — deixa o scroll interno dos componentes funcionar */
   user-select: none;
   -webkit-user-select: none;
   overscroll-behavior: none;
@@ -26,8 +27,14 @@ body {
 
 #root {
   height: 100%;
+  /* Garante que o root respeita 100% da altura */
 }
 
-/* Hide scrollbar globally for iOS feel */
-::-webkit-scrollbar { display: none; }
-* { scrollbar-width: none; }
+/* Hide scrollbar globally para feel de app nativo */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+}
