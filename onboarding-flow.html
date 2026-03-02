@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#FAF8F5">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <title>DayOS — Personalizando</title>
+  <style>
+    /* ═══════════════════════════════════════════════════
+       DESIGN TOKENS — identical to existing screens
+       ═══════════════════════════════════════════════════ */
+    :root {
+      --bg: #FAF8F5;
+      --bg-input: #F2F0ED;
+      --accent: #F4A76C;
+      --accent-hover: #E8955A;
+      --accent-glow: rgba(244, 167, 108, 0.28);
+      --accent-light: rgba(244, 167, 108, 0.12);
+      --text-primary: #2D2D2D;
+      --text-secondary: #6B6B6B;
+      --text-tertiary: #8A8A8E;
+      --text-placeholder: #AEAEB2;
+      --border-light: #E8E6E3;
+      --white: #FFFFFF;
+      --success: #34C759;
+      --success-light: rgba(52, 199, 89, 0.12);
+
+      --font-display: -apple-system, 'SF Pro Display', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+      --font-text: -apple-system, 'SF Pro Text', 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+      --ease-spring: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RESET & BASE
+       ═══════════════════════════════════════════════════ */
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
+
+    html {
+      height: 100%; overflow: hidden; touch-action: none;
+    }
+
+    body {
+      height: 100%; overflow: hidden;
+      font-family: var(--font-text);
+      background-color: var(--bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      user-select: none; -webkit-user-select: none;
+      touch-action: none; overscroll-behavior: none;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       SCREEN WRAPPER — stack of screens
+       ═══════════════════════════════════════════════════ */
+    .app {
+      position: fixed; inset: 0;
+      overflow: hidden;
+    }
+
+    .screen {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      padding: calc(var(--safe-top) + 8px) 24px calc(var(--safe-bottom) + 16px);
+      opacity: 0; pointer-events: none;
+      transform: translateX(32px);
+      transition: opacity 0.38s var(--ease-spring), transform 0.38s var(--ease-spring);
+      will-change: transform, opacity;
+    }
+
+    .screen.active {
+      opacity: 1; pointer-events: all;
+      transform: translateX(0);
+    }
+
+    .screen.exit {
+      opacity: 0; pointer-events: none;
+      transform: translateX(-32px);
+      transition: opacity 0.28s ease, transform 0.28s ease;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       PROGRESS BAR
+       ═══════════════════════════════════════════════════ */
+    .progress {
+      width: 100%; height: 3px;
+      border-radius: 1.5px;
+      background: var(--border-light);
+      margin-bottom: 28px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .progress-fill {
+      height: 100%; border-radius: 1.5px;
+      background: var(--accent);
+      transition: width 0.5s var(--ease-spring);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════ */
+    .header {
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: 28px; font-weight: 700;
+      line-height: 1.15; letter-spacing: -0.02em;
+      transition: opacity 0.3s ease;
+    }
+
+    .header h1 .name-highlight {
+      color: var(--accent);
+    }
+
+    .header p {
+      font-size: 15px; color: var(--text-tertiary);
+      line-height: 1.45; margin-top: 10px;
+      max-width: 310px;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       CENTER AREA
+       ═══════════════════════════════════════════════════ */
+    .center-area {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 16px 0;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       INPUT FIELD (Step 2 — Name)
+       ═══════════════════════════════════════════════════ */
+    .name-input-wrapper {
+      width: 100%;
+    }
+
+    .name-input {
+      width: 100%; height: 56px;
+      border: none; border-radius: 16px;
+      background: var(--bg-input);
+      padding: 0 20px;
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 500;
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.2s ease;
+      -webkit-appearance: none; appearance: none;
+      caret-color: var(--accent);
+    }
+
+    .name-input::placeholder {
+      color: var(--text-placeholder);
+      font-weight: 400;
+    }
+
+    .name-input:focus {
+      background: #EBE9E6;
+      box-shadow: 0 0 0 2px rgba(244, 167, 108, 0.30);
+    }
+
+    .name-hint {
+      margin-top: 10px;
+      font-size: 13px; color: var(--text-placeholder);
+      padding-left: 4px;
+      min-height: 18px;
+      transition: color 0.2s ease;
+    }
+
+    .name-hint.ready {
+      color: var(--success);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       CHIPS — Multi & Single Select
+       ═══════════════════════════════════════════════════ */
+    .chips-grid {
+      display: flex; flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px; width: 100%;
+    }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 46px; padding: 0 18px;
+      border-radius: 23px;
+      border: 1.5px solid var(--border-light);
+      background: var(--white);
+      font-family: var(--font-text);
+      font-size: 15px; font-weight: 400;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-spring);
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      white-space: nowrap;
+    }
+
+    .chip:active {
+      transform: scale(0.95);
+    }
+
+    .chip.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--white);
+      box-shadow: 0 4px 14px var(--accent-glow);
+      transform: scale(1.03);
+    }
+
+    .chip-emoji {
+      font-size: 16px; line-height: 1;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       TIME RANGE (Step 5)
+       ═══════════════════════════════════════════════════ */
+    .time-presets {
+      display: flex; flex-direction: column;
+      gap: 10px; width: 100%;
+    }
+
+    .time-preset {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      width: 100%; height: 60px;
+      padding: 0 20px;
+      border-radius: 16px;
+      border: 1.5px solid var(--border-light);
+      background: var(--white);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-spring);
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .time-preset:active { transform: scale(0.98); }
+
+    .time-preset.selected {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .time-preset-label {
+      font-family: var(--font-text);
+      font-size: 16px; font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .time-preset-range {
+      font-family: var(--font-text);
+      font-size: 14px; color: var(--text-tertiary);
+      font-weight: 400;
+    }
+
+    .time-preset.selected .time-preset-range {
+      color: var(--accent-hover);
+    }
+
+    .time-preset-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-light);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s var(--ease-spring);
+      flex-shrink: 0;
+    }
+
+    .time-preset.selected .time-preset-check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .time-preset-check svg {
+      width: 12px; height: 12px;
+      stroke: white; stroke-width: 2.5;
+      stroke-linecap: round; stroke-linejoin: round;
+      fill: none;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.2s var(--ease-spring);
+    }
+
+    .time-preset.selected .time-preset-check svg {
+      opacity: 1; transform: scale(1);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       TIME PICKER (Step 6 — Recap)
+       ═══════════════════════════════════════════════════ */
+    .recap-picker {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 24px;
+      width: 100%;
+    }
+
+    .time-display {
+      display: flex; align-items: center;
+      gap: 6px;
+    }
+
+    .time-digit-group {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 4px;
+    }
+
+    .time-digits {
+      font-family: var(--font-display);
+      font-size: 64px; font-weight: 700;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      line-height: 1;
+      min-width: 80px; text-align: center;
+    }
+
+    .time-label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-placeholder);
+    }
+
+    .time-colon {
+      font-family: var(--font-display);
+      font-size: 56px; font-weight: 300;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 18px;
+      animation: colonBlink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes colonBlink {
+      0%, 45% { opacity: 1; }
+      55%, 100% { opacity: 0.2; }
+    }
+
+    .time-stepper {
+      display: flex; gap: 8px;
+    }
+
+    .stepper-btn {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border-light);
+      background: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s var(--ease-spring);
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .stepper-btn:active {
+      transform: scale(0.9);
+      background: var(--bg-input);
+    }
+
+    .stepper-btn svg {
+      width: 18px; height: 18px;
+      stroke: var(--text-primary); stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round; fill: none;
+    }
+
+    .recap-presets {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .recap-preset-btn {
+      height: 36px; padding: 0 16px;
+      border-radius: 18px;
+      border: 1.5px solid var(--border-light);
+      background: var(--white);
+      font-family: var(--font-text);
+      font-size: 14px; font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-spring);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .recap-preset-btn:active { transform: scale(0.95); }
+
+    .recap-preset-btn.active {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent-hover);
+    }
+
+    .recap-description {
+      text-align: center;
+      font-size: 13px; color: var(--text-tertiary);
+      line-height: 1.5; max-width: 280px;
+      padding: 12px 16px;
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       BOTTOM CTA
+       ═══════════════════════════════════════════════════ */
+    .bottom {
+      flex-shrink: 0; padding-top: 8px;
+    }
+
+    .cta {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 54px;
+      border: none; border-radius: 14px;
+      background: var(--accent);
+      color: var(--white);
+      font-family: var(--font-text);
+      font-size: 17px; font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(244, 167, 108, 0.20);
+      transition: all 0.2s var(--ease-spring);
+      -webkit-tap-highlight-color: transparent;
+      position: relative; overflow: hidden;
+    }
+
+    .cta::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .cta:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 12px 32px rgba(244, 167, 108, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .cta:active {
+      transform: scale(0.98);
+      box-shadow: 0 4px 16px rgba(244, 167, 108, 0.15);
+    }
+
+    .cta:disabled {
+      background: #E8E6E3;
+      color: var(--text-placeholder);
+      box-shadow: none;
+      transform: none;
+      cursor: not-allowed;
+    }
+
+    /* CTA icon */
+    .cta-inner {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .cta-arrow {
+      width: 18px; height: 18px;
+      stroke: currentColor; stroke-width: 2.5;
+      stroke-linecap: round; stroke-linejoin: round; fill: none;
+      transition: transform 0.2s var(--ease-spring);
+    }
+
+    .cta:not(:disabled):hover .cta-arrow {
+      transform: translateX(3px);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       READY SCREEN
+       ═══════════════════════════════════════════════════ */
+    #screen-ready {
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      padding-left: 28px;
+      padding-right: 28px;
+    }
+
+    .ready-content {
+      display: flex; flex-direction: column;
+      align-items: center; width: 100%;
+      gap: 0;
+    }
+
+    .ready-emoji {
+      font-size: 64px; line-height: 1;
+      margin-bottom: 24px;
+      animation: emojiPop 0.6s var(--ease-spring) 0.1s both;
+    }
+
+    @keyframes emojiPop {
+      from { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+      to { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .ready-title {
+      font-family: var(--font-display);
+      font-size: 32px; font-weight: 700;
+      letter-spacing: -0.025em; line-height: 1.1;
+      text-align: center;
+      margin-bottom: 12px;
+      animation: slideUp 0.5s var(--ease-spring) 0.2s both;
+    }
+
+    .ready-subtitle {
+      font-size: 16px; color: var(--text-tertiary);
+      text-align: center; line-height: 1.5;
+      max-width: 280px;
+      margin-bottom: 36px;
+      animation: slideUp 0.5s var(--ease-spring) 0.28s both;
+    }
+
+    .ready-tags {
+      display: flex; flex-wrap: wrap;
+      justify-content: center; gap: 8px;
+      width: 100%; margin-bottom: 40px;
+      animation: slideUp 0.5s var(--ease-spring) 0.35s both;
+    }
+
+    .ready-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 34px; padding: 0 14px;
+      border-radius: 17px;
+      font-size: 13px; font-weight: 500;
+    }
+
+    .ready-tag.role {
+      background: rgba(99, 102, 241, 0.10);
+      color: #6366F1;
+      border: 1px solid rgba(99, 102, 241, 0.20);
+    }
+
+    .ready-tag.pain {
+      background: var(--accent-light);
+      color: var(--accent-hover);
+      border: 1px solid rgba(244, 167, 108, 0.25);
+    }
+
+    .ready-tag.time {
+      background: rgba(52, 199, 89, 0.10);
+      color: #22A047;
+      border: 1px solid rgba(52, 199, 89, 0.20);
+    }
+
+    .ready-tag.tool {
+      background: rgba(0,0,0,0.04);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-light);
+    }
+
+    .ready-cta-wrap {
+      width: 100%;
+      animation: slideUp 0.5s var(--ease-spring) 0.45s both;
+    }
+
+    .ready-cta {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 56px;
+      border: none; border-radius: 16px;
+      background: var(--accent);
+      color: var(--white);
+      font-family: var(--font-text);
+      font-size: 17px; font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      box-shadow: 0 8px 28px rgba(244, 167, 108, 0.30);
+      transition: all 0.2s var(--ease-spring);
+      -webkit-tap-highlight-color: transparent;
+      position: relative; overflow: hidden;
+      gap: 8px;
+    }
+
+    .ready-cta::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .ready-cta:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(244, 167, 108, 0.38);
+    }
+
+    .ready-cta:active { transform: scale(0.98); }
+
+    /* Confetti burst (pure CSS) */
+    .confetti-wrap {
+      position: fixed; inset: 0; pointer-events: none;
+      overflow: hidden; z-index: 100;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      opacity: 0;
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+      80% { opacity: 0.8; }
+      100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       KEYFRAMES
+       ═══════════════════════════════════════════════════ */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════════ */
+    @media (min-width: 600px) {
+      .screen { max-width: 420px; left: 50%; transform: translateX(calc(-50% + 16px)); }
+      .screen.active { transform: translateX(-50%); }
+      .screen.exit { transform: translateX(calc(-50% - 16px)); }
+    }
+
+    @media (max-height: 680px) {
+      .name-input { height: 50px; font-size: 18px; }
+      .header h1 { font-size: 24px; }
+      .time-digits { font-size: 52px; }
+      .time-colon { font-size: 44px; }
+      .center-area { padding: 8px 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app" id="app">
+
+  <!-- ══════════════════════════════════════════
+       STEP 2 — NOME
+       ══════════════════════════════════════════ -->
+  <section class="screen active" id="screen-2" data-step="2">
+    <div class="progress">
+      <div class="progress-fill" style="width: 33.33%"></div>
+    </div>
+    <header class="header">
+      <h1 id="greeting-title">Como você<br>se chama?</h1>
+      <p>Vamos personalizar tudo para você.</p>
+    </header>
+
+    <div class="center-area">
+      <div class="name-input-wrapper">
+        <input
+          class="name-input"
+          type="text"
+          id="nameInput"
+          placeholder="Seu nome"
+          autocomplete="given-name"
+          autocapitalize="words"
+          autocorrect="off"
+          spellcheck="false"
+        >
+        <p class="name-hint" id="nameHint">Digite seu nome para continuar.</p>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <button class="cta" id="cta-2" disabled>
+        <span class="cta-inner">
+          Continuar
+          <svg class="cta-arrow" viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       STEP 3 — ÁREA DE ATUAÇÃO
+       ══════════════════════════════════════════ -->
+  <section class="screen" id="screen-3" data-step="3">
+    <div class="progress">
+      <div class="progress-fill" style="width: 50%"></div>
+    </div>
+    <header class="header">
+      <h1>Em que área<br>você atua?</h1>
+      <p>Isso ajuda a IA a entender suas prioridades.</p>
+    </header>
+
+    <div class="center-area">
+      <div class="chips-grid" id="chips-area">
+        <button class="chip" data-value="tech" type="button">
+          <span class="chip-emoji">💻</span> Tech
+        </button>
+        <button class="chip" data-value="marketing" type="button">
+          <span class="chip-emoji">📣</span> Marketing
+        </button>
+        <button class="chip" data-value="gestao" type="button">
+          <span class="chip-emoji">🧭</span> Gestão
+        </button>
+        <button class="chip" data-value="design" type="button">
+          <span class="chip-emoji">🎨</span> Design
+        </button>
+        <button class="chip" data-value="vendas" type="button">
+          <span class="chip-emoji">📈</span> Vendas
+        </button>
+        <button class="chip" data-value="financeiro" type="button">
+          <span class="chip-emoji">💰</span> Financeiro
+        </button>
+        <button class="chip" data-value="consultoria" type="button">
+          <span class="chip-emoji">🤝</span> Consultoria
+        </button>
+        <button class="chip" data-value="outro" type="button">
+          <span class="chip-emoji">✨</span> Outro
+        </button>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <button class="cta" id="cta-3" disabled>
+        <span class="cta-inner">
+          Continuar
+          <svg class="cta-arrow" viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       STEP 4 — DORES (multi-select)
+       ══════════════════════════════════════════ -->
+  <section class="screen" id="screen-4" data-step="4">
+    <div class="progress">
+      <div class="progress-fill" style="width: 66.66%"></div>
+    </div>
+    <header class="header">
+      <h1>O que mais te<br>trava no dia a dia?</h1>
+      <p>Selecione quantos quiser. Sem julgamentos.</p>
+    </header>
+
+    <div class="center-area">
+      <div class="chips-grid" id="chips-pains">
+        <button class="chip" data-value="reunioes" type="button">
+          <span class="chip-emoji">📅</span> Reuniões demais
+        </button>
+        <button class="chip" data-value="emails" type="button">
+          <span class="chip-emoji">📧</span> Emails acumulados
+        </button>
+        <button class="chip" data-value="prioridades" type="button">
+          <span class="chip-emoji">🎯</span> Sem prioridades claras
+        </button>
+        <button class="chip" data-value="ferramentas" type="button">
+          <span class="chip-emoji">🔧</span> Muita ferramenta
+        </button>
+        <button class="chip" data-value="tarefas" type="button">
+          <span class="chip-emoji">✅</span> Atualizar tarefas
+        </button>
+        <button class="chip" data-value="foco" type="button">
+          <span class="chip-emoji">🧠</span> Foco interrompido
+        </button>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <button class="cta" id="cta-4" disabled>
+        <span class="cta-inner">
+          Continuar
+          <svg class="cta-arrow" viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       STEP 5 — HORÁRIO DE TRABALHO
+       ══════════════════════════════════════════ -->
+  <section class="screen" id="screen-5" data-step="5">
+    <div class="progress">
+      <div class="progress-fill" style="width: 83.33%"></div>
+    </div>
+    <header class="header">
+      <h1>Qual é o seu<br>horário de trabalho?</h1>
+      <p>A IA vai respeitar suas janelas de foco.</p>
+    </header>
+
+    <div class="center-area">
+      <div class="time-presets" id="time-presets">
+
+        <button class="time-preset" data-value="8-17" type="button">
+          <div>
+            <div class="time-preset-label">Madrugador</div>
+            <div class="time-preset-range">08:00 — 17:00</div>
+          </div>
+          <div class="time-preset-check">
+            <svg viewBox="0 0 12 12">
+              <polyline points="2 6 5 9 10 3"/>
+            </svg>
+          </div>
+        </button>
+
+        <button class="time-preset" data-value="9-18" type="button">
+          <div>
+            <div class="time-preset-label">Padrão</div>
+            <div class="time-preset-range">09:00 — 18:00</div>
+          </div>
+          <div class="time-preset-check">
+            <svg viewBox="0 0 12 12">
+              <polyline points="2 6 5 9 10 3"/>
+            </svg>
+          </div>
+        </button>
+
+        <button class="time-preset" data-value="10-19" type="button">
+          <div>
+            <div class="time-preset-label">Vespertino</div>
+            <div class="time-preset-range">10:00 — 19:00</div>
+          </div>
+          <div class="time-preset-check">
+            <svg viewBox="0 0 12 12">
+              <polyline points="2 6 5 9 10 3"/>
+            </svg>
+          </div>
+        </button>
+
+        <button class="time-preset" data-value="flexivel" type="button">
+          <div>
+            <div class="time-preset-label">Flexível</div>
+            <div class="time-preset-range">Varia todo dia</div>
+          </div>
+          <div class="time-preset-check">
+            <svg viewBox="0 0 12 12">
+              <polyline points="2 6 5 9 10 3"/>
+            </svg>
+          </div>
+        </button>
+
+      </div>
+    </div>
+
+    <div class="bottom">
+      <button class="cta" id="cta-5" disabled>
+        <span class="cta-inner">
+          Continuar
+          <svg class="cta-arrow" viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       STEP 6 — HORÁRIO DO RECAP
+       ══════════════════════════════════════════ -->
+  <section class="screen" id="screen-6" data-step="6">
+    <div class="progress">
+      <div class="progress-fill" style="width: 100%"></div>
+    </div>
+    <header class="header">
+      <h1>Quando você quer<br>seu recap noturno?</h1>
+      <p>Você recebe uma notificação pra revisar o dia.</p>
+    </header>
+
+    <div class="center-area">
+      <div class="recap-picker">
+
+        <div class="time-display">
+          <div class="time-digit-group">
+            <div class="time-digits" id="recap-hours">21</div>
+            <div class="time-label">hora</div>
+            <div class="time-stepper">
+              <button class="stepper-btn" id="hours-down" type="button" aria-label="Diminuir hora">
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <button class="stepper-btn" id="hours-up" type="button" aria-label="Aumentar hora">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="time-colon">:</div>
+
+          <div class="time-digit-group">
+            <div class="time-digits" id="recap-mins">00</div>
+            <div class="time-label">min</div>
+            <div class="time-stepper">
+              <button class="stepper-btn" id="mins-down" type="button" aria-label="Diminuir minutos">
+                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <button class="stepper-btn" id="mins-up" type="button" aria-label="Aumentar minutos">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="recap-presets">
+          <button class="recap-preset-btn" data-h="20" data-m="0" type="button">20:00</button>
+          <button class="recap-preset-btn active" data-h="21" data-m="0" type="button">21:00</button>
+          <button class="recap-preset-btn" data-h="21" data-m="30" type="button">21:30</button>
+          <button class="recap-preset-btn" data-h="22" data-m="0" type="button">22:00</button>
+          <button class="recap-preset-btn" data-h="22" data-m="30" type="button">22:30</button>
+        </div>
+
+        <p class="recap-description">
+          🌙 Você receberá uma notificação às <strong id="recap-preview">21:00</strong> para uma conversa rápida de 2 minutos com a IA.
+        </p>
+
+      </div>
+    </div>
+
+    <div class="bottom">
+      <button class="cta" id="cta-6" type="button">
+        <span class="cta-inner">
+          Organizar meu dia →
+        </span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       READY SCREEN
+       ══════════════════════════════════════════ -->
+  <section class="screen" id="screen-ready">
+    <div class="confetti-wrap" id="confetti"></div>
+
+    <div class="ready-content">
+      <div class="ready-emoji">✨</div>
+      <h1 class="ready-title">Tudo pronto,<br><span id="ready-name" style="color: var(--accent)">João</span>!</h1>
+      <p class="ready-subtitle">Seu assistente já conhece você. Vamos organizar seu primeiro dia.</p>
+
+      <div class="ready-tags" id="ready-tags">
+        <!-- Preenchido via JS -->
+      </div>
+
+      <div class="ready-cta-wrap">
+        <button class="ready-cta" type="button" onclick="window.location.href='/morning-briefing.html'">
+          Ver meu primeiro dia
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /.app -->
+
+<script>
+  // ═══════════════════════════════════
+  //  STATE
+  // ═══════════════════════════════════
+  const state = {
+    name: '',
+    tools: JSON.parse(sessionStorage.getItem('dayos_tools') || '[]'),
+    area: '',
+    pains: [],
+    schedule: '',
+    recapHour: 21,
+    recapMin: 0,
+  };
+
+  // ═══════════════════════════════════
+  //  NAVIGATION
+  // ═══════════════════════════════════
+  let currentScreen = 2;
+
+  function goTo(next) {
+    const cur = document.getElementById(
+      currentScreen === 'ready' ? 'screen-ready' : `screen-${currentScreen}`
+    );
+    const nxt = document.getElementById(
+      next === 'ready' ? 'screen-ready' : `screen-${next}`
+    );
+
+    cur.classList.remove('active');
+    cur.classList.add('exit');
+    setTimeout(() => cur.classList.remove('exit'), 350);
+
+    nxt.classList.add('active');
+    currentScreen = next;
+
+    // Trigger entrance animations by re-adding class
+    nxt.querySelectorAll('.chips-grid, .time-presets, .name-input-wrapper, .recap-picker').forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight;
+      el.style.animation = '';
+    });
+  }
+
+  // ═══════════════════════════════════
+  //  STEP 2 — NAME
+  // ═══════════════════════════════════
+  const nameInput = document.getElementById('nameInput');
+  const nameHint = document.getElementById('nameHint');
+  const greetingTitle = document.getElementById('greeting-title');
+  const cta2 = document.getElementById('cta-2');
+
+  nameInput.addEventListener('input', () => {
+    const val = nameInput.value.trim();
+    state.name = val;
+
+    if (val.length > 0) {
+      const firstName = val.split(' ')[0];
+      greetingTitle.innerHTML = `Oi, <span class="name-highlight">${firstName}</span>!<br>Que bom te ver.`;
+      nameHint.textContent = '✓ Perfeito!';
+      nameHint.classList.add('ready');
+      cta2.disabled = false;
+    } else {
+      greetingTitle.innerHTML = `Como você<br>se chama?`;
+      nameHint.textContent = 'Digite seu nome para continuar.';
+      nameHint.classList.remove('ready');
+      cta2.disabled = true;
+    }
+  });
+
+  nameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !cta2.disabled) goTo(3);
+  });
+
+  cta2.addEventListener('click', () => { if (!cta2.disabled) goTo(3); });
+
+  // Focus name input on load
+  setTimeout(() => nameInput.focus(), 400);
+
+  // ═══════════════════════════════════
+  //  STEP 3 — ÁREA (single select)
+  // ═══════════════════════════════════
+  const cta3 = document.getElementById('cta-3');
+
+  document.getElementById('chips-area').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+
+    document.querySelectorAll('#chips-area .chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    state.area = chip.dataset.value;
+    cta3.disabled = false;
+  });
+
+  cta3.addEventListener('click', () => { if (!cta3.disabled) goTo(4); });
+
+  // ═══════════════════════════════════
+  //  STEP 4 — DORES (multi select)
+  // ═══════════════════════════════════
+  const cta4 = document.getElementById('cta-4');
+
+  document.getElementById('chips-pains').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+
+    chip.classList.toggle('selected');
+    const val = chip.dataset.value;
+
+    if (chip.classList.contains('selected')) {
+      state.pains.push(val);
+    } else {
+      state.pains = state.pains.filter(p => p !== val);
+    }
+
+    cta4.disabled = state.pains.length === 0;
+  });
+
+  cta4.addEventListener('click', () => { if (!cta4.disabled) goTo(5); });
+
+  // ═══════════════════════════════════
+  //  STEP 5 — HORÁRIO (single select)
+  // ═══════════════════════════════════
+  const cta5 = document.getElementById('cta-5');
+
+  document.getElementById('time-presets').addEventListener('click', e => {
+    const preset = e.target.closest('.time-preset');
+    if (!preset) return;
+
+    document.querySelectorAll('.time-preset').forEach(p => p.classList.remove('selected'));
+    preset.classList.add('selected');
+    state.schedule = preset.dataset.value;
+    cta5.disabled = false;
+  });
+
+  cta5.addEventListener('click', () => { if (!cta5.disabled) goTo(6); });
+
+  // ═══════════════════════════════════
+  //  STEP 6 — RECAP TIMER
+  // ═══════════════════════════════════
+  const hoursEl = document.getElementById('recap-hours');
+  const minsEl = document.getElementById('recap-mins');
+  const recapPreview = document.getElementById('recap-preview');
+
+  function updateRecapDisplay() {
+    hoursEl.textContent = String(state.recapHour).padStart(2, '0');
+    minsEl.textContent = String(state.recapMin).padStart(2, '0');
+    recapPreview.textContent = `${String(state.recapHour).padStart(2,'0')}:${String(state.recapMin).padStart(2,'0')}`;
+
+    // Update active preset
+    document.querySelectorAll('.recap-preset-btn').forEach(btn => {
+      const h = parseInt(btn.dataset.h);
+      const m = parseInt(btn.dataset.m);
+      btn.classList.toggle('active', h === state.recapHour && m === state.recapMin);
+    });
+  }
+
+  function animateDigit(el) {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = 'digitPop 0.2s var(--ease-spring)';
+  }
+
+  // Steppers
+  document.getElementById('hours-up').addEventListener('click', () => {
+    state.recapHour = state.recapHour >= 23 ? 20 : state.recapHour + 1;
+    animateDigit(hoursEl);
+    updateRecapDisplay();
+  });
+  document.getElementById('hours-down').addEventListener('click', () => {
+    state.recapHour = state.recapHour <= 20 ? 23 : state.recapHour - 1;
+    animateDigit(hoursEl);
+    updateRecapDisplay();
+  });
+  document.getElementById('mins-up').addEventListener('click', () => {
+    state.recapMin = state.recapMin >= 30 ? 0 : state.recapMin + 30;
+    animateDigit(minsEl);
+    updateRecapDisplay();
+  });
+  document.getElementById('mins-down').addEventListener('click', () => {
+    state.recapMin = state.recapMin <= 0 ? 30 : state.recapMin - 30;
+    animateDigit(minsEl);
+    updateRecapDisplay();
+  });
+
+  // Preset buttons
+  document.querySelectorAll('.recap-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.recapHour = parseInt(btn.dataset.h);
+      state.recapMin = parseInt(btn.dataset.m);
+      animateDigit(hoursEl);
+      animateDigit(minsEl);
+      updateRecapDisplay();
+    });
+  });
+
+  document.getElementById('cta-6').addEventListener('click', () => {
+    buildReadyScreen();
+    goTo('ready');
+    setTimeout(launchConfetti, 300);
+  });
+
+  // ═══════════════════════════════════
+  //  READY SCREEN — build tags
+  // ═══════════════════════════════════
+  const areaLabels = {
+    tech: '💻 Tech', marketing: '📣 Marketing', gestao: '🧭 Gestão',
+    design: '🎨 Design', vendas: '📈 Vendas', financeiro: '💰 Financeiro',
+    consultoria: '🤝 Consultoria', outro: '✨ Outro'
+  };
+
+  const painLabels = {
+    reunioes: '📅 Reuniões', emails: '📧 Emails', prioridades: '🎯 Prioridades',
+    ferramentas: '🔧 Ferramentas', tarefas: '✅ Tarefas', foco: '🧠 Foco'
+  };
+
+  const scheduleLabels = {
+    '8-17': '⏰ 8h–17h', '9-18': '⏰ 9h–18h', '10-19': '⏰ 10h–19h', 'flexivel': '⏰ Flexível'
+  };
+
+  function buildReadyScreen() {
+    document.getElementById('ready-name').textContent = state.name.split(' ')[0];
+
+    const tagsEl = document.getElementById('ready-tags');
+    tagsEl.innerHTML = '';
+
+    // Area tag
+    if (state.area) {
+      const t = document.createElement('span');
+      t.className = 'ready-tag role';
+      t.textContent = areaLabels[state.area] || state.area;
+      tagsEl.appendChild(t);
+    }
+
+    // Pain tags (max 3)
+    state.pains.slice(0, 3).forEach(p => {
+      const t = document.createElement('span');
+      t.className = 'ready-tag pain';
+      t.textContent = painLabels[p] || p;
+      tagsEl.appendChild(t);
+    });
+
+    // Schedule tag
+    if (state.schedule) {
+      const t = document.createElement('span');
+      t.className = 'ready-tag time';
+      t.textContent = scheduleLabels[state.schedule] || state.schedule;
+      tagsEl.appendChild(t);
+    }
+
+    // Recap tag
+    const rt = document.createElement('span');
+    rt.className = 'ready-tag time';
+    rt.textContent = `🌙 Recap ${String(state.recapHour).padStart(2,'0')}:${String(state.recapMin).padStart(2,'0')}`;
+    tagsEl.appendChild(rt);
+  }
+
+  // ═══════════════════════════════════
+  //  CONFETTI
+  // ═══════════════════════════════════
+  const CONFETTI_COLORS = ['#F4A76C', '#E76F51', '#FBBF24', '#34D399', '#6366F1', '#FAF8F5'];
+
+  function launchConfetti() {
+    const container = document.getElementById('confetti');
+    container.innerHTML = '';
+
+    for (let i = 0; i < 48; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left: ${Math.random() * 100}%;
+        top: -20px;
+        background: ${CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]};
+        width: ${4 + Math.random() * 8}px;
+        height: ${4 + Math.random() * 8}px;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        animation: confettiFall ${1.5 + Math.random() * 2}s ease-in ${Math.random() * 0.8}s forwards;
+      `;
+      container.appendChild(el);
+    }
+
+    setTimeout(() => { container.innerHTML = ''; }, 4000);
+  }
+
+  // ═══════════════════════════════════
+  //  DIGIT POP KEYFRAME (inline)
+  // ═══════════════════════════════════
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes digitPop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // ═══════════════════════════════════
+  //  TOUCH LOCK
+  // ═══════════════════════════════════
+  document.addEventListener('touchmove', e => {
+    if (e.target.tagName !== 'INPUT') e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('gesturestart', e => e.preventDefault());
+</script>
+
+</body>
+</html>

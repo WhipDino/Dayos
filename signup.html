@@ -694,51 +694,8 @@
             }
         });
 
-        // CTA — validate and navigate
+        // CTA — bypass validation temporarily for testing
         ctaButton.addEventListener('click', () => {
-            const name = nameInput.value.trim();
-            const email = emailInput.value.trim();
-            const pw = passwordInput.value;
-            let hasError = false;
-
-            // Name
-            if (name === '') {
-                nameInput.classList.add('error');
-                hasError = true;
-            } else {
-                nameInput.classList.remove('error');
-            }
-
-            // Email
-            if (!isValidEmail(email)) {
-                emailInput.classList.add('error');
-                emailInput.classList.remove('valid');
-                emailError.classList.add('show');
-                hasError = true;
-            }
-
-            // Password
-            if (!isValidPassword(pw)) {
-                passwordInput.classList.add('error');
-                passwordInput.classList.remove('valid');
-                passwordHelper.classList.add('error');
-                passwordHelper.classList.remove('valid');
-                passwordHelper.textContent = 'Use 8+ caracteres com letras e números.';
-                hasError = true;
-            }
-
-            if (hasError) {
-                // Shake the first error field
-                const first = document.querySelector('.input-field.error');
-                if (first) {
-                    first.style.animation = 'none';
-                    first.offsetHeight; // trigger reflow
-                    first.style.animation = 'shake 0.4s ease';
-                    first.focus();
-                }
-                return;
-            }
-
             // Success — navigate to onboarding
             window.location.href = '/onboarding.html';
         });
