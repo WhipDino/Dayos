@@ -53,12 +53,6 @@ const ShieldIcon = () => (
         <path d="M5.5 8l2 2 3.5-3.5" strokeWidth="1.8" />
     </svg>
 )
-const ArrowIcon = () => (
-    <svg style={{ width: 18, height: 18, stroke: 'white', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }} viewBox="0 0 24 24">
-        <line x1="5" y1="12" x2="19" y2="12" />
-        <polyline points="12 5 19 12 12 19" />
-    </svg>
-)
 
 function CalRow({ dot, name, time, badge, badgeType }) {
     const colors = { soon: { bg: 'rgba(244,162,97,0.15)', color: T.accentHover }, free: { bg: 'rgba(52,211,153,0.15)', color: '#059669' }, done: { bg: 'rgba(0,0,0,0.06)', color: T.text3 } }
@@ -123,206 +117,198 @@ export default function WhyConnect({ onContinue }) {
     }
 
     return (
-        <div style={{
-            // ─── CHAVE: position fixed + 100dvh ───
-            position: 'fixed',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            // safe area aplicada AQUI, não nos filhos
-            paddingTop: 'env(safe-area-inset-top, 0px)',
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-            background: T.bg,
-            maxWidth: 420,
-            margin: '0 auto',
-            left: 0,
-            right: 0,
-            // overflow hidden APENAS no container raiz pra evitar qualquer leak
-            overflow: 'hidden',
-        }}>
+        <>
+            <style>{`
+                .whyconnect-root {
+                    position: absolute;
+                    inset: 0;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    -webkit-overflow-scrolling: touch;
+                    background: ${T.bg};
+                }
+                .whyconnect-root::-webkit-scrollbar { display: none; }
+                .whyconnect-root { scrollbar-width: none; }
+                @media (max-height: 680px) {
+                    .whyconnect-title { font-size: 26px !important; }
+                    .whyconnect-subtitle { font-size: 13px !important; margin-bottom: 8px !important; }
+                    .feature-card { padding: 14px 14px 12px !important; }
+                }
+                @media (max-height: 580px) {
+                    .whyconnect-title { font-size: 22px !important; }
+                    .whyconnect-subtitle { display: none !important; }
+                    .card-subtitle { display: none !important; }
+                }
+            `}</style>
 
-            {/* ── HEADER — nunca scrolla ── */}
-            <div style={{ flexShrink: 0, padding: '16px 24px 0' }}>
-                {/* Topbar */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
-                        DayOS<span style={{ display: 'inline-block', width: 5, height: 5, background: T.accent, borderRadius: '50%', marginLeft: 1, verticalAlign: 'middle', position: 'relative', top: -1 }} />
-                    </span>
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: T.text3, background: T.surface2, padding: '5px 12px', borderRadius: 20 }}>
-                        Passo 2 de 5
-                    </span>
-                </div>
-
-                {/* Progress bar */}
-                <div style={{ width: '100%', height: 3, borderRadius: 1.5, background: T.border, marginBottom: 24, overflow: 'hidden' }}>
-                    <div style={{ width: '40%', height: '100%', borderRadius: 1.5, background: `linear-gradient(90deg, ${T.dawn}, ${T.sunrise})`, transition: 'width 0.6s cubic-bezier(0.23,1,0.32,1)' }} />
-                </div>
-
-                {/* Headline */}
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1, duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
-                    style={{ marginBottom: 20 }}
-                >
-                    <h1 className="whyconnect-title" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 30, fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.025em', color: T.text }}>
-                        Como a IA<br />organiza <em style={{ fontStyle: 'normal', background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>seu dia</em>
-                    </h1>
-                    <p className="whyconnect-subtitle" style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: T.text2, maxWidth: 300 }}>
-                        Conecte suas ferramentas uma vez. A IA cuida do resto todo dia.
-                    </p>
-                </motion.div>
-            </div>
-
-            {/* ── CARDS AREA — scrolla, ocupa o espaço restante ── */}
-            <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                style={{
-                    flex: 1,
-                    minHeight: 0,          // ← CRÍTICO: sem isso o flex não comprime no iOS
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                    WebkitOverflowScrolling: 'touch',
-                    padding: '0 20px 16px',
+            {/* ── O container inteiro rola naturalmente ── */}
+            <div className="whyconnect-root">
+                <div style={{
+                    maxWidth: 420,
+                    margin: '0 auto',
+                    paddingTop: 'env(safe-area-inset-top, 0px)',
+                    minHeight: '100dvh',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 12,
-                    scrollbarWidth: 'none',
-                }}
-            >
-                {/* Card 1: Google Calendar */}
-                <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
-                    <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%)' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ ...iconBoxStyle, background: 'rgba(99,102,241,0.10)' }}><CalendarIcon /></div>
-                        <div>
-                            <div style={cardTitleStyle}>Lê sua agenda</div>
-                            <div style={cardSubStyle} className="card-subtitle">Reuniões, blocos livres, compromissos</div>
-                        </div>
-                    </div>
-                    <div style={previewStyle}>
-                        <CalRow dot="#6366F1" name="Daily com o time" time="09:30 · 30 min" badge="em breve" badgeType="soon" />
-                        <CalRow dot={T.success} name="Bloco livre" time="10:00 – 12:00" badge="livre" badgeType="free" />
-                        <CalRow dot={T.accent} name="1:1 com gestor" time="14:00 · 1h" badge="depois" badgeType="done" />
-                    </div>
-                </motion.div>
+                }}>
 
-                {/* Card 2: Gmail */}
-                <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
-                    <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(234,67,53,0.04) 0%, transparent 60%)' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ ...iconBoxStyle, background: 'rgba(234,67,53,0.08)' }}><GmailIcon /></div>
-                        <div>
-                            <div style={cardTitleStyle}>Processa seus emails</div>
-                            <div style={cardSubStyle} className="card-subtitle">Identifica ações, filtra o que importa</div>
-                        </div>
-                    </div>
-                    <div style={previewStyle}>
-                        <EmailRow avatar="M" avatarBg="linear-gradient(135deg, #EA4335, #FBBC04)" from="Maria · Product" subject="Aprovação do wireframe Q2" tag="↩ responder hoje" tagType="reply" />
-                        <EmailRow avatar="R" avatarBg="linear-gradient(135deg, #4285F4, #34A853)" from="Rafael · Tech Lead" subject="PR #142 — revisão pendente" tag="👁 revisar" tagType="review" />
-                    </div>
-                </motion.div>
+                    {/* ── CONTENT — cresce naturalmente ── */}
+                    <div style={{ padding: '16px 20px 0', flex: '1 0 auto' }}>
 
-                {/* Card 3: AI */}
-                <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
-                    <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%)' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ ...iconBoxStyle, background: T.accentLight }}><AiIcon /></div>
-                        <div>
-                            <div style={cardTitleStyle}>Monta seu dia</div>
-                            <div style={cardSubStyle} className="card-subtitle">Tarefas priorizadas nas janelas certas</div>
+                        {/* Topbar */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
+                                DayOS<span style={{ display: 'inline-block', width: 5, height: 5, background: T.accent, borderRadius: '50%', marginLeft: 1, verticalAlign: 'middle', position: 'relative', top: -1 }} />
+                            </span>
+                            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: T.text3, background: T.surface2, padding: '5px 12px', borderRadius: 20 }}>
+                                Passo 2 de 5
+                            </span>
                         </div>
+
+                        {/* Progress bar */}
+                        <div style={{ width: '100%', height: 3, borderRadius: 1.5, background: T.border, marginBottom: 24, overflow: 'hidden' }}>
+                            <div style={{ width: '40%', height: '100%', borderRadius: 1.5, background: `linear-gradient(90deg, ${T.dawn}, ${T.sunrise})` }} />
+                        </div>
+
+                        {/* Headline */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1, duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
+                            style={{ marginBottom: 20 }}
+                        >
+                            <h1 className="whyconnect-title" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 30, fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.025em', color: T.text }}>
+                                Como a IA<br />organiza <em style={{ fontStyle: 'normal', background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>seu dia</em>
+                            </h1>
+                            <p className="whyconnect-subtitle" style={{ marginTop: 10, fontSize: 15, lineHeight: 1.5, color: T.text2, maxWidth: 300 }}>
+                                Conecte suas ferramentas uma vez. A IA cuida do resto todo dia.
+                            </p>
+                        </motion.div>
+
+                        {/* ── CARDS — cada um com altura natural do conteúdo ── */}
+                        <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 16 }}
+                        >
+                            {/* Card 1: Google Calendar */}
+                            <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
+                                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%)' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ ...iconBoxStyle, background: 'rgba(99,102,241,0.10)' }}><CalendarIcon /></div>
+                                    <div>
+                                        <div style={cardTitleStyle}>Lê sua agenda</div>
+                                        <div style={cardSubStyle} className="card-subtitle">Reuniões, blocos livres, compromissos</div>
+                                    </div>
+                                </div>
+                                <div style={previewStyle}>
+                                    <CalRow dot="#6366F1" name="Daily com o time" time="09:30 · 30 min" badge="em breve" badgeType="soon" />
+                                    <CalRow dot={T.success} name="Bloco livre" time="10:00 – 12:00" badge="livre" badgeType="free" />
+                                    <CalRow dot={T.accent} name="1:1 com gestor" time="14:00 · 1h" badge="depois" badgeType="done" />
+                                </div>
+                            </motion.div>
+
+                            {/* Card 2: Gmail */}
+                            <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
+                                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(234,67,53,0.04) 0%, transparent 60%)' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ ...iconBoxStyle, background: 'rgba(234,67,53,0.08)' }}><GmailIcon /></div>
+                                    <div>
+                                        <div style={cardTitleStyle}>Processa seus emails</div>
+                                        <div style={cardSubStyle} className="card-subtitle">Identifica ações, filtra o que importa</div>
+                                    </div>
+                                </div>
+                                <div style={previewStyle}>
+                                    <EmailRow avatar="M" avatarBg="linear-gradient(135deg, #EA4335, #FBBC04)" from="Maria · Product" subject="Aprovação do wireframe Q2" tag="↩ responder hoje" tagType="reply" />
+                                    <EmailRow avatar="R" avatarBg="linear-gradient(135deg, #4285F4, #34A853)" from="Rafael · Tech Lead" subject="PR #142 — revisão pendente" tag="👁 revisar" tagType="review" />
+                                </div>
+                            </motion.div>
+
+                            {/* Card 3: AI */}
+                            <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
+                                <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%)' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ ...iconBoxStyle, background: T.accentLight }}><AiIcon /></div>
+                                    <div>
+                                        <div style={cardTitleStyle}>Monta seu dia</div>
+                                        <div style={cardSubStyle} className="card-subtitle">Tarefas priorizadas nas janelas certas</div>
+                                    </div>
+                                </div>
+                                <div
+                                    ref={scrollRef}
+                                    onScroll={handleScroll}
+                                    style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 12, borderRadius: 12, background: T.surface2, padding: '12px 14px', scrollbarWidth: 'none' }}
+                                >
+                                    <div style={slideStyle}>
+                                        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.accent, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.accent }} />
+                                            DayOS · Briefing de hoje
+                                        </div>
+                                        <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
+                                            Você tem <span style={{ fontWeight: 600, color: T.accentHover }}>2h livres</span> antes do 1:1. Priorizei:
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                            <TaskItem done text="Responder Maria sobre wireframe" />
+                                            <TaskItem done={false} text="Revisar PR #142 do Rafael" />
+                                            <TaskItem done={false} text="Preparar pauta do 1:1" />
+                                        </div>
+                                    </div>
+                                    <div style={slideStyle}>
+                                        <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.dusk, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.dusk }} />
+                                            DayOS · Recap de ontem
+                                        </div>
+                                        <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
+                                            <span style={{ fontWeight: 600, color: T.success }}>Ótimo dia!</span> 3 de 4 tarefas concluídas.
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                            <TaskItem done text="Enviar proposta Q2" />
+                                            <TaskItem done text="Code review sprint 14" />
+                                        </div>
+                                        <div style={{ fontSize: 11, color: T.text3, marginTop: 8, fontStyle: 'italic' }}>Amanhã: foco no PR e na apresentação.</div>
+                                    </div>
+                                </div>
+                                <CarouselDots count={2} active={activeSlide} />
+                            </motion.div>
+                        </motion.div>
                     </div>
 
-                    <div
-                        ref={scrollRef}
-                        onScroll={handleScroll}
-                        style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 12, borderRadius: 12, background: T.surface2, padding: '12px 14px', scrollbarWidth: 'none' }}
+                    {/* ── FOOTER — sticky no fundo ── */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.85, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                        style={{
+                            position: 'sticky',
+                            bottom: 0,
+                            background: T.bg,
+                            padding: '12px 20px',
+                            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
+                            zIndex: 10,
+                        }}
                     >
-                        <div style={slideStyle}>
-                            <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.accent, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.accent }} />
-                                DayOS · Briefing de hoje
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', borderRadius: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', marginBottom: 16 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(52,211,153,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <ShieldIcon />
                             </div>
-                            <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
-                                Você tem <span style={{ fontWeight: 600, color: T.accentHover }}>2h livres</span> antes do 1:1. Priorizei:
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                                <TaskItem done text="Responder Maria sobre wireframe" />
-                                <TaskItem done={false} text="Revisar PR #142 do Rafael" />
-                                <TaskItem done={false} text="Preparar pauta do 1:1" />
-                            </div>
+                            <p style={{ fontSize: 12, fontWeight: 500, color: '#047857', lineHeight: 1.4 }}>
+                                <strong style={{ fontWeight: 700 }}>Seus dados ficam com você.</strong> Leitura somente. Nunca armazenamos emails ou eventos.
+                            </p>
                         </div>
-                        <div style={slideStyle}>
-                            <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.dusk, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.dusk }} />
-                                DayOS · Recap de ontem
-                            </div>
-                            <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
-                                <span style={{ fontWeight: 600, color: T.success }}>Ótimo dia!</span> 3 de 4 tarefas concluídas.
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                                <TaskItem done text="Enviar proposta Q2" />
-                                <TaskItem done text="Code review sprint 14" />
-                            </div>
-                            <div style={{ fontSize: 11, color: T.text3, marginTop: 8, fontStyle: 'italic' }}>Amanhã: foco no PR e na apresentação.</div>
-                        </div>
-                    </div>
-                    <CarouselDots count={2} active={activeSlide} />
-                </motion.div>
-            </motion.div>
-
-            {/* ── FOOTER — nunca scrolla ── */}
-            <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.85, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-                style={{
-                    flexShrink: 0,
-                    padding: '12px 20px',
-                    paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
-                }}
-            >
-                {/* Privacy pill */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', borderRadius: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', marginBottom: 16 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(52,211,153,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <ShieldIcon />
-                    </div>
-                    <p style={{ fontSize: 12, fontWeight: 500, color: '#047857', lineHeight: 1.4 }}>
-                        <strong style={{ fontWeight: 700 }}>Seus dados ficam com você.</strong> Leitura somente. Nunca armazenamos emails ou eventos.
-                    </p>
+                        <motion.button
+                            onClick={onContinue}
+                            whileHover={{ y: -2, boxShadow: '0 14px 36px rgba(244,162,97,0.38), 0 4px 12px rgba(244,162,97,0.18)' }}
+                            whileTap={{ scale: 0.98 }}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 56, border: 'none', borderRadius: 16, background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`, color: 'white', fontFamily: "'Outfit', sans-serif", fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer', boxShadow: '0 8px 28px rgba(244,162,97,0.30), 0 2px 8px rgba(244,162,97,0.15)', position: 'relative', overflow: 'hidden', WebkitTapHighlightColor: 'transparent' }}
+                        >
+                            <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 55%)', pointerEvents: 'none', borderRadius: 16 }} />
+                            Entendi, vamos lá →
+                        </motion.button>
+                    </motion.div>
                 </div>
-
-                {/* CTA */}
-                <motion.button
-                    onClick={onContinue}
-                    whileHover={{ y: -2, boxShadow: '0 14px 36px rgba(244,162,97,0.38), 0 4px 12px rgba(244,162,97,0.18)' }}
-                    whileTap={{ scale: 0.98 }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 56, border: 'none', borderRadius: 16, background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`, color: 'white', fontFamily: "'Outfit', sans-serif", fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', cursor: 'pointer', boxShadow: '0 8px 28px rgba(244,162,97,0.30), 0 2px 8px rgba(244,162,97,0.15)', position: 'relative', overflow: 'hidden', WebkitTapHighlightColor: 'transparent' }}
-                >
-                    <span style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.14) 0%, transparent 55%)', pointerEvents: 'none', borderRadius: 16 }} />
-                    Entendi, vamos lá →
-                </motion.button>
-            </motion.div>
-
-            <style>{`
-        .cards-scroll-area::-webkit-scrollbar, * { scrollbar-width: none; }
-        *::-webkit-scrollbar { display: none; }
-        @keyframes pulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.4); opacity:0.6; } }
-        @media (max-height: 680px) {
-          .whyconnect-title { font-size: 26px !important; }
-          .whyconnect-subtitle { font-size: 13px !important; margin-bottom: 8px !important; }
-          .feature-card { padding: 14px 14px 12px !important; }
-        }
-        @media (max-height: 580px) {
-          .whyconnect-title { font-size: 22px !important; }
-          .whyconnect-subtitle { display: none !important; }
-          .card-subtitle { display: none !important; }
-        }
-      `}</style>
-        </div>
+            </div>
+        </>
     )
 }
 
@@ -330,9 +316,8 @@ const cardStyle = {
     background: T.surface, borderRadius: 20, border: `1px solid ${T.border}`,
     padding: '18px 18px 16px',
     boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03)',
-    position: 'relative', overflow: 'hidden',
+    position: 'relative',
     display: 'flex', flexDirection: 'column', gap: 12,
-    flexShrink: 0,
 }
 const overlayGradient = { position: 'absolute', inset: 0, borderRadius: 20, pointerEvents: 'none' }
 const iconBoxStyle = { width: 38, height: 38, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
