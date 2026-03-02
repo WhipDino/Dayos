@@ -10,16 +10,16 @@
 
 html {
   height: 100%;
-  /* NÃO overflow:hidden aqui — impede scroll interno no iOS */
+  overflow: hidden;
 }
 
 body {
   height: 100%;
+  overflow: hidden;
   font-family: 'DM Sans', -apple-system, sans-serif;
   background: #FAF8F5;
   color: #2D2D2D;
   -webkit-font-smoothing: antialiased;
-  /* NÃO overflow:hidden — deixa o scroll interno dos componentes funcionar */
   user-select: none;
   -webkit-user-select: none;
   overscroll-behavior: none;

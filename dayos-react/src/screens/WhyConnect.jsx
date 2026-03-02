@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useRef, useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const T = {
     bg: '#FAF8F5', surface: '#FFFFFF', surface2: '#F5F3F0',
@@ -107,7 +107,14 @@ function CarouselDots({ count, active }) {
 
 export default function WhyConnect({ onContinue }) {
     const scrollRef = useRef(null)
+    const cardsContainerRef = useRef(null)
+    const cardRefs = [useRef(null), useRef(null), useRef(null)]
     const [activeSlide, setActiveSlide] = useState(0)
+
+    // Animation phases: 'entering' | 'zoom-in-N' | 'hold-N' | 'zoom-out-N' | 'normal'
+    const [phase, setPhase] = useState('entering')
+    // Transform for the zoomed card { translateY, scale }
+    const [zoomStyle, setZoomStyle] = useState(null)
 
     const handleScroll = () => {
         const el = scrollRef.current
@@ -116,19 +123,107 @@ export default function WhyConnect({ onContinue }) {
         setActiveSlide(slide)
     }
 
+    // Calculate transform to center a card on the entire screen (viewport)
+    const calcCenterTransform = (cardIndex) => {
+        const card = cardRefs[cardIndex]?.current
+        if (!card) return { translateY: 0, scale: 1.08 }
+
+        const cardRect = card.getBoundingClientRect()
+        const cardCenterY = cardRect.top + cardRect.height / 2
+        const screenCenterY = window.innerHeight / 2
+        const translateY = screenCenterY - cardCenterY
+
+        return { translateY, scale: 1.08 }
+    }
+
+    // Spotlight zoom sequence
+    useEffect(() => {
+        const STAGGER_WAIT = 1800
+        const ZOOM_IN = 500
+        const HOLD = 1500
+        const ZOOM_OUT = 500
+        const GAP = 300
+
+        const timers = []
+        const t = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id) }
+
+        const animateCard = (index, startAt) => {
+            // Calculate transform and zoom in to absolute center of screen
+            t(() => {
+                setPhase(`zoom-in-${index}`)
+                setZoomStyle(calcCenterTransform(index))
+            }, startAt)
+
+            // Hold
+            t(() => {
+                setPhase(`hold-${index}`)
+            }, startAt + ZOOM_IN)
+
+            // Zoom out back to original slot
+            t(() => {
+                setPhase(`zoom-out-${index}`)
+                setZoomStyle(null)
+            }, startAt + ZOOM_IN + HOLD)
+        }
+
+        const cardDuration = ZOOM_IN + HOLD + ZOOM_OUT + GAP
+
+        animateCard(0, STAGGER_WAIT)
+        animateCard(1, STAGGER_WAIT + cardDuration)
+        animateCard(2, STAGGER_WAIT + cardDuration * 2)
+
+        // Return to normal
+        t(() => {
+            setPhase('normal')
+            setZoomStyle(null)
+            if (cardsContainerRef.current) {
+                cardsContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+            }
+        }, STAGGER_WAIT + cardDuration * 3)
+
+        return () => timers.forEach(clearTimeout)
+    }, [])
+
+    // Parse phase
+    const phaseMatch = phase.match(/^(zoom-in|hold|zoom-out)-(\d)$/)
+    const isAnimating = !!phaseMatch
+    const activeCardIndex = phaseMatch ? parseInt(phaseMatch[2]) : -1
+    const isZoomedIn = phase.startsWith('zoom-in-') || phase.startsWith('hold-')
+
+    // Dynamic styles for each card
+    const getCardAnimStyle = (cardIndex) => {
+        if (!isAnimating) return {}
+
+        if (cardIndex === activeCardIndex) {
+            if (isZoomedIn && zoomStyle) {
+                return {
+                    transform: `translateY(${zoomStyle.translateY}px) scale(${zoomStyle.scale})`,
+                    boxShadow: '0 20px 60px rgba(244,162,97,0.30), 0 8px 24px rgba(0,0,0,0.12)',
+                    zIndex: 30,
+                    transition: 'transform 0.5s cubic-bezier(0.23,1,0.32,1), box-shadow 0.5s cubic-bezier(0.23,1,0.32,1)',
+                }
+            }
+            // zoom-out: return to original position
+            return {
+                transform: 'translateY(0) scale(1)',
+                zIndex: 20,
+                transition: 'transform 0.5s cubic-bezier(0.23,1,0.32,1), box-shadow 0.5s cubic-bezier(0.23,1,0.32,1)',
+            }
+        }
+
+        // Non-active cards: dim and blur
+        return {
+            opacity: 0.2,
+            filter: 'blur(3px)',
+            transform: 'scale(0.96)',
+            transition: 'all 0.5s cubic-bezier(0.23,1,0.32,1)',
+        }
+    }
     return (
         <>
             <style>{`
-                .whyconnect-root {
-                    position: absolute;
-                    inset: 0;
-                    overflow-y: auto;
-                    overflow-x: hidden;
-                    -webkit-overflow-scrolling: touch;
-                    background: ${T.bg};
-                }
-                .whyconnect-root::-webkit-scrollbar { display: none; }
-                .whyconnect-root { scrollbar-width: none; }
+                .whyconnect-cards::-webkit-scrollbar { display: none; }
+                .whyconnect-cards { scrollbar-width: none; }
                 @media (max-height: 680px) {
                     .whyconnect-title { font-size: 26px !important; }
                     .whyconnect-subtitle { font-size: 13px !important; margin-bottom: 8px !important; }
@@ -141,20 +236,20 @@ export default function WhyConnect({ onContinue }) {
                 }
             `}</style>
 
-            {/* ── O container inteiro rola naturalmente ── */}
-            <div className="whyconnect-root">
-                <div style={{
-                    maxWidth: 420,
-                    margin: '0 auto',
-                    paddingTop: 'env(safe-area-inset-top, 0px)',
-                    minHeight: '100dvh',
-                    display: 'flex',
-                    flexDirection: 'column',
-                }}>
+            {/* ── ROOT: absolute fullscreen, 3 zonas ── */}
+            <div style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                background: T.bg,
+                paddingTop: 'env(safe-area-inset-top, 0px)',
+            }}>
+                <div style={{ maxWidth: 420, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
 
-                    {/* ── CONTENT — cresce naturalmente ── */}
-                    <div style={{ padding: '16px 20px 0', flex: '1 0 auto' }}>
-
+                    {/* ── HEADER — fixo no topo ── */}
+                    <div style={{ flexShrink: 0, padding: '16px 20px 0', touchAction: 'none', opacity: isAnimating ? 0.3 : 1, filter: isAnimating ? 'blur(2px)' : 'none', transition: 'opacity 0.5s ease, filter 0.5s ease' }}>
                         {/* Topbar */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                             <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text }}>
@@ -175,7 +270,7 @@ export default function WhyConnect({ onContinue }) {
                             initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1, duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
-                            style={{ marginBottom: 20 }}
+                            style={{ marginBottom: 16 }}
                         >
                             <h1 className="whyconnect-title" style={{ fontFamily: "'Outfit', sans-serif", fontSize: 30, fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.025em', color: T.text }}>
                                 Como a IA<br />organiza <em style={{ fontStyle: 'normal', background: `linear-gradient(135deg, ${T.dawn} 0%, ${T.sunrise} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>seu dia</em>
@@ -184,16 +279,29 @@ export default function WhyConnect({ onContinue }) {
                                 Conecte suas ferramentas uma vez. A IA cuida do resto todo dia.
                             </p>
                         </motion.div>
+                    </div>
 
-                        {/* ── CARDS — cada um com altura natural do conteúdo ── */}
+                    {/* ── CARDS — scroll vertical, display BLOCK (não flex!) ── */}
+                    <div
+                        ref={cardsContainerRef}
+                        className="whyconnect-cards"
+                        style={{
+                            flex: 1,
+                            minHeight: 0,
+                            overflowY: isAnimating ? 'hidden' : 'auto',
+                            overflowX: 'hidden',
+                            WebkitOverflowScrolling: 'touch',
+                            overscrollBehavior: 'contain',
+                            padding: '4px 20px 16px',
+                        }}
+                    >
                         <motion.div
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
-                            style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 16 }}
                         >
                             {/* Card 1: Google Calendar */}
-                            <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
+                            <motion.div ref={cardRefs[0]} variants={cardVariants} style={{ ...cardStyle, marginBottom: 12, ...getCardAnimStyle(0) }} className="feature-card">
                                 <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, transparent 60%)' }} />
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                     <div style={{ ...iconBoxStyle, background: 'rgba(99,102,241,0.10)' }}><CalendarIcon /></div>
@@ -210,7 +318,7 @@ export default function WhyConnect({ onContinue }) {
                             </motion.div>
 
                             {/* Card 2: Gmail */}
-                            <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
+                            <motion.div ref={cardRefs[1]} variants={cardVariants} style={{ ...cardStyle, marginBottom: 12, ...getCardAnimStyle(1) }} className="feature-card">
                                 <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(234,67,53,0.04) 0%, transparent 60%)' }} />
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                     <div style={{ ...iconBoxStyle, background: 'rgba(234,67,53,0.08)' }}><GmailIcon /></div>
@@ -220,13 +328,13 @@ export default function WhyConnect({ onContinue }) {
                                     </div>
                                 </div>
                                 <div style={previewStyle}>
-                                    <EmailRow avatar="M" avatarBg="linear-gradient(135deg, #EA4335, #FBBC04)" from="Maria · Product" subject="Aprovação do wireframe Q2" tag="↩ responder hoje" tagType="reply" />
-                                    <EmailRow avatar="R" avatarBg="linear-gradient(135deg, #4285F4, #34A853)" from="Rafael · Tech Lead" subject="PR #142 — revisão pendente" tag="👁 revisar" tagType="review" />
+                                    <EmailRow avatar="M" avatarBg="linear-gradient(135deg, #EA4335, #FBBC04)" from="Maria · Product" subject="Aprovação do wireframe Q2" tag="responder hoje" tagType="reply" />
+                                    <EmailRow avatar="R" avatarBg="linear-gradient(135deg, #4285F4, #34A853)" from="Rafael · Tech Lead" subject="PR #142 — revisão pendente" tag="revisar" tagType="review" />
                                 </div>
                             </motion.div>
 
                             {/* Card 3: AI */}
-                            <motion.div variants={cardVariants} style={cardStyle} className="feature-card">
+                            <motion.div ref={cardRefs[2]} variants={cardVariants} style={{ ...cardStyle, ...getCardAnimStyle(2) }} className="feature-card">
                                 <div style={{ ...overlayGradient, background: 'linear-gradient(135deg, rgba(244,162,97,0.06) 0%, transparent 60%)' }} />
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                     <div style={{ ...iconBoxStyle, background: T.accentLight }}><AiIcon /></div>
@@ -238,7 +346,7 @@ export default function WhyConnect({ onContinue }) {
                                 <div
                                     ref={scrollRef}
                                     onScroll={handleScroll}
-                                    style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 12, borderRadius: 12, background: T.surface2, padding: '12px 14px', scrollbarWidth: 'none' }}
+                                    style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 12, borderRadius: 12, background: T.surface2, padding: '12px 14px', scrollbarWidth: 'none', marginTop: 12 }}
                                 >
                                     <div style={slideStyle}>
                                         <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.accent, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -274,18 +382,20 @@ export default function WhyConnect({ onContinue }) {
                         </motion.div>
                     </div>
 
-                    {/* ── FOOTER — sticky no fundo ── */}
+                    {/* ── FOOTER — fixo embaixo ── */}
                     <motion.div
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.85, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                         style={{
-                            position: 'sticky',
-                            bottom: 0,
+                            flexShrink: 0,
                             background: T.bg,
                             padding: '12px 20px',
                             paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
-                            zIndex: 10,
+                            touchAction: 'none',
+                            opacity: isAnimating ? 0.3 : 1,
+                            filter: isAnimating ? 'blur(2px)' : 'none',
+                            transition: 'opacity 0.5s ease, filter 0.5s ease',
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', borderRadius: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.18)', marginBottom: 16 }}>
@@ -316,12 +426,11 @@ const cardStyle = {
     background: T.surface, borderRadius: 20, border: `1px solid ${T.border}`,
     padding: '18px 18px 16px',
     boxShadow: '0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03)',
-    position: 'relative',
-    display: 'flex', flexDirection: 'column', gap: 12,
+    position: 'relative', overflow: 'visible',
 }
 const overlayGradient = { position: 'absolute', inset: 0, borderRadius: 20, pointerEvents: 'none' }
 const iconBoxStyle = { width: 38, height: 38, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
 const cardTitleStyle = { fontFamily: "'Outfit', sans-serif", fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', color: T.text, lineHeight: 1.2 }
 const cardSubStyle = { fontSize: 12, color: T.text3, marginTop: 2, fontWeight: 400 }
-const previewStyle = { borderRadius: 12, background: T.surface2, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }
+const previewStyle = { borderRadius: 12, background: T.surface2, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }
 const slideStyle = { minWidth: '85%', flexShrink: 0, scrollSnapAlign: 'start', borderRadius: 12, background: T.surface, padding: '10px 14px' }
