@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import imgGoogleCal from '../assets/logos/Google_Calendar-Logo.wine.png'
+import imgGmail from '../assets/logos/Gmail_icon_(2020).svg.webp'
 
 /* ═══════════════════════════════════════════════════
    DESIGN TOKENS
@@ -47,19 +49,14 @@ const SpinnerIcon = () => (
 )
 
 // Emulating external service icons
-const AppleCalIcon = () => (
-    <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F5F5F7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: 20 }}>📅</span>
-    </div>
-)
 const GoogleCalIcon = () => (
-    <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: 20 }}>📆</span>
+    <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+        <img src={imgGoogleCal} alt="Google Calendar" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(1.3)' }} />
     </div>
 )
 const GmailIcon = () => (
-    <div style={{ width: 40, height: 40, borderRadius: 10, background: '#FDF2F1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: 20 }}>✉️</span>
+    <div style={{ width: 40, height: 40, borderRadius: 10, background: '#FDF2F1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', padding: 6 }}>
+        <img src={imgGmail} alt="Gmail" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
     </div>
 )
 
@@ -71,7 +68,6 @@ export default function Integrations({ onContinue, onBack }) {
 
     // States for each integration: 'idle', 'loading', 'connected'
     const [integrations, setIntegrations] = useState({
-        apple: 'idle',
         google: 'idle',
         gmail: 'idle'
     })
@@ -95,7 +91,6 @@ export default function Integrations({ onContinue, onBack }) {
     const connectedCount = Object.values(integrations).filter(s => s === 'connected').length
 
     const integrationsList = [
-        { id: 'apple', icon: AppleCalIcon, title: 'Apple Calendar', desc: 'Sincronize eventos do iCloud' },
         { id: 'google', icon: GoogleCalIcon, title: 'Google Calendar', desc: 'Sincronize eventos do Google' },
         { id: 'gmail', icon: GmailIcon, title: 'Gmail', desc: 'Triagem inteligente de emails' },
     ]
@@ -250,7 +245,7 @@ export default function Integrations({ onContinue, onBack }) {
 
                 <div style={{ fontSize: 13, fontWeight: 500, color: connectedCount > 0 ? '#047857' : T.text3, transition: 'color 0.3s' }}>
                     {connectedCount > 0
-                        ? `${connectedCount} de 3 conectados`
+                        ? `${connectedCount} de 2 conectados`
                         : <span onClick={onContinue} style={{ cursor: 'pointer' }}>Pular por enquanto</span>}
                 </div>
             </div>
