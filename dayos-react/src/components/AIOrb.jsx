@@ -195,18 +195,6 @@ export function AIOrb({ state = 'idle', size = 250 }) {
         const blob = new THREE.Mesh(geometry, material);
         scene.add(blob);
 
-        // --- Aura Background ---
-        const glowGeometry = new THREE.SphereGeometry(1.4, 32, 32);
-        const glowMaterial = new THREE.MeshBasicMaterial({
-            color: 0xF4A261, // accent color
-            transparent: true,
-            opacity: 0.0,
-            blending: THREE.AdditiveBlending, // gives it a light glow effect
-            depthWrite: false
-        });
-        const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
-        scene.add(glowMesh);
-
         // --- Animation State ---
         let frameId;
         const clock = new THREE.Clock();
@@ -220,7 +208,6 @@ export function AIOrb({ state = 'idle', size = 250 }) {
             frequency: 1.0,
             speed: 0.3,
             scale: 1.0,
-            glowOpacity: 0.0,
             rotSpeed: 0.15,
             stateBlend: 0.0
         };
@@ -238,7 +225,6 @@ export function AIOrb({ state = 'idle', size = 250 }) {
                 frequency: isSpeaking ? 1.3 : 1.0,
                 speed: isSpeaking ? 0.45 : 0.3,
                 scale: isSpeaking ? 1.15 : 1.0,
-                glowOpacity: isSpeaking ? 0.12 : 0.0,
                 rotSpeed: isSpeaking ? 0.25 : 0.15,
                 stateBlend: isSpeaking ? 1.0 : 0.0
             };
@@ -253,7 +239,6 @@ export function AIOrb({ state = 'idle', size = 250 }) {
             current.frequency += (targets.frequency - current.frequency) * dampingFactor;
             current.speed += (targets.speed - current.speed) * dampingFactor;
             current.scale += (targets.scale - current.scale) * dampingFactor;
-            current.glowOpacity += (targets.glowOpacity - current.glowOpacity) * dampingFactor;
             current.rotSpeed += (targets.rotSpeed - current.rotSpeed) * dampingFactor;
             current.stateBlend += (targets.stateBlend - current.stateBlend) * dampingFactor;
 
@@ -272,25 +257,6 @@ export function AIOrb({ state = 'idle', size = 250 }) {
             rotY += current.rotSpeed * delta;
             blob.rotation.y = rotY;
 
-            // Handle Glow
-            if (current.glowOpacity > 0.005) {
-                glowMesh.visible = true;
-
-                // Pulse logic
-                // target opacity is 0.12, pulse it between 0.05 and 0.15
-                // target scale is 1.4 * 1.0 base, pulse between 1.3 and 1.5
-                const pulse = Math.sin(t * 3.0) * 0.5 + 0.5; // 0.0 to 1.0
-
-                const currentScale = 1.3 + (pulse * 0.2);
-                glowMesh.scale.setScalar(currentScale);
-
-                // Map opacity: base value * (0.4 to 1.2 roughly mapped)
-                glowMaterial.opacity = current.glowOpacity * (0.4 + pulse * 0.85);
-
-            } else {
-                glowMesh.visible = false;
-            }
-
             renderer.render(scene, camera);
         };
 
@@ -304,8 +270,6 @@ export function AIOrb({ state = 'idle', size = 250 }) {
             }
             geometry.dispose();
             material.dispose();
-            glowGeometry.dispose();
-            glowMaterial.dispose();
             renderer.dispose();
         };
     }, [size]);
