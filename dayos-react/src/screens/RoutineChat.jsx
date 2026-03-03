@@ -61,14 +61,14 @@ export default function RoutineChat({ onContinue, onBack }) {
         setInputValue('');
         setOrbState('speaking');
 
-        // Mock AI response
+        // Mock AI interaction without chat bubbles
         setTimeout(() => {
             const followUpCount = messages.filter(m => m.sender === 'ai').length;
             if (followUpCount === 1) {
-                setMessages(p => [...p, { id: Date.now() + 1, sender: 'ai', text: "Entendi! E nos finais de semana, muda muito? Tem hobbies ou algo que gosta de fazer pra relaxar?" }]);
+                setMessages(p => [...p, { id: Date.now() + 1, sender: 'ai', text: "Internal state change" }]);
                 setOrbState('idle');
             } else {
-                setMessages(p => [...p, { id: Date.now() + 1, sender: 'ai', text: "Perfeito, já tenho uma boa ideia do seu ritmo! Vamos configurar o resto 🚀" }]);
+                setMessages(p => [...p, { id: Date.now() + 1, sender: 'ai', text: "Ready to proceed" }]);
                 setOrbState('idle');
                 setCanContinue(true);
             }
@@ -106,12 +106,6 @@ export default function RoutineChat({ onContinue, onBack }) {
                     0% { transform: translateY(0); opacity: 0.4; }
                     50% { transform: translateY(-4px); opacity: 1; }
                     100% { transform: translateY(0); opacity: 0.4; }
-                }
-                .chat-scroll::-webkit-scrollbar {
-                    display: none;
-                }
-                .chat-scroll {
-                    scrollbar-width: none;
                 }
             `}</style>
 
@@ -164,57 +158,11 @@ export default function RoutineChat({ onContinue, onBack }) {
                         </div>
                     </div>
 
-                    {/* ORB AREA */}
-                    <div style={{ ...getAnimStyle(2), flexShrink: 0, height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <AIOrb state={orbState} size={200} />
+                    {/* ORB AREA (Expanded to fill available space) */}
+                    <div style={{ ...getAnimStyle(2), flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <AIOrb state={orbState} size={280} />
                     </div>
 
-                    {/* CHAT AREA */}
-                    <div className="chat-scroll" style={{ ...getAnimStyle(3), flex: 1, overflowY: 'auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {messages.map(m => (
-                            <div key={m.id} style={{
-                                alignSelf: m.sender === 'ai' ? 'flex-start' : 'flex-end',
-                                background: m.sender === 'ai' ? T.surface : `linear-gradient(135deg, ${T.dawn}, ${T.sunrise})`,
-                                border: m.sender === 'ai' ? `1px solid ${T.border}` : 'none',
-                                color: m.sender === 'ai' ? T.text : 'white',
-                                padding: '12px 16px',
-                                borderRadius: m.sender === 'ai' ? '16px 16px 16px 4px' : '16px 16px 4px 16px',
-                                maxWidth: '85%',
-                                fontSize: 15,
-                                lineHeight: 1.4,
-                                fontFamily: "'DM Sans', sans-serif",
-                                animation: 'messageAppear 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards',
-                                transformOrigin: m.sender === 'ai' ? 'bottom left' : 'bottom right'
-                            }}>
-                                <style>{`
-                                    @keyframes messageAppear {
-                                        from { opacity: 0; transform: scale(0.9) translateY(10px); }
-                                        to { opacity: 1; transform: scale(1) translateY(0); }
-                                    }
-                                `}</style>
-                                {m.text}
-                            </div>
-                        ))}
-
-                        {isTyping && (
-                            <div style={{
-                                alignSelf: 'flex-start',
-                                background: T.surface,
-                                border: `1px solid ${T.border}`,
-                                padding: '14px 16px',
-                                borderRadius: '16px 16px 16px 4px',
-                                display: 'flex',
-                                gap: 4,
-                                animation: 'messageAppear 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards',
-                                transformOrigin: 'bottom left'
-                            }}>
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.text3, animation: 'typingBounce 1.4s infinite' }} />
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.text3, animation: 'typingBounce 1.4s infinite 0.2s' }} />
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.text3, animation: 'typingBounce 1.4s infinite 0.4s' }} />
-                            </div>
-                        )}
-                        <div ref={chatEndRef} style={{ height: 1 }} />
-                    </div>
 
                     {/* INPUT AREA */}
                     <div style={{ ...getAnimStyle(4), flexShrink: 0, padding: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -248,8 +196,8 @@ export default function RoutineChat({ onContinue, onBack }) {
                             )}
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'center', position: 'relative', height: 64, alignItems: 'center' }}>
-                            <div style={{ position: 'relative', width: 56, height: 56, opacity: canContinue ? 0 : 1, transition: 'opacity 0.3s', pointerEvents: canContinue ? 'none' : 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'visible', fontSize: 56, paddingBottom: '0.45em', paddingTop: '0.15em' }}>
+                            <div style={{ position: 'relative', width: '1em', height: '1em', opacity: canContinue ? 0 : 1, transition: 'opacity 0.3s', pointerEvents: canContinue ? 'none' : 'auto' }}>
                                 {isRecording && (
                                     <div style={{
                                         position: 'absolute', inset: 0, borderRadius: '50%', background: T.sunrise,
@@ -269,24 +217,15 @@ export default function RoutineChat({ onContinue, onBack }) {
                                 >
                                     <MicIcon />
                                 </button>
-                                {isRecording && (
-                                    <div style={{
-                                        position: 'absolute', top: 60, left: '50%', transform: 'translateX(-50%)',
-                                        color: T.sunrise, fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap',
-                                        animation: 'fadePulse 1.5s infinite alternate'
-                                    }}>
-                                        <style>{`@keyframes fadePulse { from { opacity: 0.6; } to { opacity: 1; } }`}</style>
-                                        Ouvindo...
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
 
                     {/* FOOTER */}
                     <div style={{
-                        flexShrink: 0, background: T.bg, padding: '12px 20px',
-                        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
+                        flexShrink: 0, background: T.bg, padding: '24px 20px',
+                        paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 20px)',
+                        marginTop: 'auto',
                         ...getAnimStyle(5)
                     }}>
                         <button
