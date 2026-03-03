@@ -4,6 +4,7 @@ import SignUp from './screens/SignUp'
 import NameInput from './screens/NameInput'
 import WhyConnect from './screens/WhyConnect'
 import Integrations from './screens/Integrations'
+import RoutineChat from './screens/RoutineChat'
 import RecapTime from './screens/RecapTime'
 import ReadyScreen from './screens/ReadyScreen'
 import './index.css'
@@ -35,8 +36,8 @@ function App() {
   if (screen === 'name') {
     return (
       <NameInput
-        step="1 de 4"
-        progress="25%"
+        step="1 de 5"
+        progress="20%"
         onBack={() => setScreen('signup')}
         onContinue={(name) => {
           setUserName(name)
@@ -59,7 +60,18 @@ function App() {
     return (
       <Integrations
         onBack={() => setScreen('why-connect')}
-        onContinue={() => setScreen('recap')}
+        onContinue={() => setScreen('routine')}
+      />
+    )
+  }
+
+  if (screen === 'routine') {
+    return (
+      <RoutineChat
+        onBack={() => setScreen('integrations')}
+        onContinue={() => {
+          setScreen('recap')
+        }}
       />
     )
   }
@@ -67,9 +79,9 @@ function App() {
   if (screen === 'recap') {
     return (
       <RecapTime
-        step="4 de 4"
+        step="5 de 5"
         progress="100%"
-        onBack={() => setScreen('integrations')}
+        onBack={() => setScreen('routine')}
         onContinue={({ time }) => {
           setRecapTime(time)
           setScreen('ready')

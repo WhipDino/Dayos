@@ -131,13 +131,13 @@ export default function Integrations({ onContinue, onBack }) {
                         </span>
                     </div>
                     <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: T.text3, background: T.surface2, padding: '5px 12px', borderRadius: 20 }}>
-                        Passo 3 de 4
+                        Passo 3 de 5
                     </span>
                 </div>
 
                 {/* Progress bar */}
                 <div style={getEntranceStyle(entered, 1, { width: '100%', height: 3, borderRadius: 1.5, background: T.border, marginBottom: 24, overflow: 'hidden' })}>
-                    <div style={{ width: '75%', height: '100%', borderRadius: 1.5, background: `linear-gradient(90deg, ${T.dawn}, ${T.sunrise})` }} />
+                    <div style={{ width: '60%', height: '100%', borderRadius: 1.5, background: `linear-gradient(90deg, ${T.dawn}, ${T.sunrise})` }} />
                 </div>
 
                 {/* Headline */}

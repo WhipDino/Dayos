@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { AIOrb } from '../components/AIOrb'
 
 /* ═══════════════════════════════════════════════════
    DESIGN TOKENS
@@ -27,28 +28,6 @@ const T = {
    ═══════════════════════════════════════════════════ */
 const spring = [0.23, 1, 0.32, 1]
 
-/* ═══════════════════════════════════════════════════
-   LOTTIE WEB COMPONENT WRAPPER
-   ═══════════════════════════════════════════════════ */
-function LottiePlayer() {
-    useEffect(() => {
-        if (!document.querySelector('script[src*="dotlottie-wc"]')) {
-            const s = document.createElement('script')
-            s.src = 'https://unpkg.com/@lottiefiles/dotlottie-wc@latest/dist/dotlottie-wc.js'
-            s.type = 'module'
-            document.head.appendChild(s)
-        }
-    }, [])
-
-    return (
-        <dotlottie-wc
-            src="https://lottie.host/8ce6828f-5172-4c2a-a202-009b6eecbe44/fo5q5O4YSd.lottie"
-            style={{ width: 240, height: 240 }}
-            loop
-            autoplay
-        />
-    )
-}
 
 /* ═══════════════════════════════════════════════════
    FLOATING PARTICLES
@@ -117,7 +96,7 @@ export default function SplashScreen({ onContinue, onLogin = () => { } }) {
                     aria-hidden="true"
                     className="animation-container"
                 >
-                    <LottiePlayer />
+                    <AIOrb state="idle" size={240} />
 
                     {/* Floating particles */}
                     {particles.map((p, i) => (
