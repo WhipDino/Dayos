@@ -223,7 +223,7 @@ export const BriefingModal = ({ isOpen, onClose, userName = "João", tasks = [] 
     let narrativeText = "";
 
     if (tasks.length === 0) {
-        narrativeText = "Seu primeiro dia com o DayOS! Ainda não tenho informações da sua agenda. Me conta suas tarefas pelo microfone ou conecte seu calendário nas configurações.";
+        narrativeText = "Seu primeiro dia com o Orbhy! Ainda não tenho informações da sua agenda. Me conta suas tarefas pelo microfone ou conecte seu calendário nas configurações.";
     } else if (isBusyDay) {
         narrativeText = "A sua manhã tem foco em entregas com reuniões na sequência. Depois do almoço o ritmo aperta. Dia cheio, mas tá tudo sob controle aqui.";
     } else {
@@ -263,9 +263,9 @@ export const BriefingModal = ({ isOpen, onClose, userName = "João", tasks = [] 
 
                     {/* 1. Header: Logo + Fechar */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12 }}>
-                        {/* Logo DayOS */}
+                        {/* Logo Orbhy */}
                         <div style={{ display: 'inline-flex', alignItems: 'center' }}>
-                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, lineHeight: 1 }}>DayOS</span>
+                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, lineHeight: 1 }}>Orbhy</span>
                             <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.dawn, marginLeft: 2 }} />
                         </div>
 

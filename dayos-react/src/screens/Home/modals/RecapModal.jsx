@@ -304,10 +304,10 @@ export const RecapModal = ({ isOpen, onClose, userName = "João" }) => {
                     WebkitOverflowScrolling: 'auto'
                 }}>
 
-                    {/* Header: Logo DayOS + Fechar */}
+                    {/* Header: Logo Orbhy + Fechar */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center' }}>
-                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: '#F5F3F0', lineHeight: 1 }}>DayOS</span>
+                            <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: '#F5F3F0', lineHeight: 1 }}>Orbhy</span>
                             <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.dawn, marginLeft: 2 }} />
                         </div>
 

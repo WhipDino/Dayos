@@ -347,7 +347,7 @@ export default function WhyConnect({ onContinue, onBack }) {
                     <div style={slideStyle}>
                         <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.accent, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
                             <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.accent }} />
-                            DayOS · Briefing de hoje
+                            Orbhy · Briefing de hoje
                         </div>
                         <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
                             Você tem <span style={{ fontWeight: 600, color: T.accentHover }}>2h livres</span> antes do 1:1. Priorizei:
@@ -361,7 +361,7 @@ export default function WhyConnect({ onContinue, onBack }) {
                     <div style={slideStyle}>
                         <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.dusk, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
                             <div style={{ width: 5, height: 5, borderRadius: '50%', background: T.dusk }} />
-                            DayOS · Recap de ontem
+                            Orbhy · Recap de ontem
                         </div>
                         <div style={{ fontSize: 13, lineHeight: 1.5, color: T.text, marginBottom: 8 }}>
                             <span style={{ fontWeight: 600, color: T.success }}>Ótimo dia!</span> 3 de 4 tarefas concluídas.
@@ -463,7 +463,7 @@ export default function WhyConnect({ onContinue, onBack }) {
                                     </svg>
                                 </button>
                                 <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: T.text, lineHeight: 1 }}>
-                                    DayOS<span style={{ display: 'inline-block', width: 5, height: 5, background: T.accent, borderRadius: '50%', marginLeft: 1, verticalAlign: 'middle', position: 'relative', top: -1 }} />
+                                    Orbhy<span style={{ display: 'inline-block', width: 5, height: 5, background: T.accent, borderRadius: '50%', marginLeft: 1, verticalAlign: 'middle', position: 'relative', top: -1 }} />
                                 </span>
                             </div>
                             <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: T.text3, background: T.surface2, padding: '5px 12px', borderRadius: 20 }}>

@@ -79,7 +79,7 @@ export default function SplashScreen({ onContinue, onLogin = () => { } }) {
                 style={{ textAlign: 'center' }}
             >
                 <h1 style={logoTextStyle}>
-                    DayOS
+                    Orbhy
                     <span style={logoDotStyle} />
                 </h1>
             </motion.header>

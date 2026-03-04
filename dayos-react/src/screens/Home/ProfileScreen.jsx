@@ -52,7 +52,7 @@ export function ProfileScreen() {
                 </div>
                 <div style={{ marginTop: 16, padding: '20px 16px', background: T.gradientWarm, borderRadius: 16, color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                     <h3 style={{ margin: '0 0 4px 0', fontSize: 18, fontFamily: "'Outfit', sans-serif" }}>Desbloqueie integrações e IA</h3>
-                    <p style={{ margin: '0 0 16px 0', fontSize: 14, fontFamily: "'DM Sans', sans-serif", opacity: 0.9 }}>Conecte quantas contas quiser e tenha suporte completo do DayOS AI.</p>
+                    <p style={{ margin: '0 0 16px 0', fontSize: 14, fontFamily: "'DM Sans', sans-serif", opacity: 0.9 }}>Conecte quantas contas quiser e tenha suporte completo do Orbhy AI.</p>
                     <button style={{ background: 'white', color: T.sunrise, border: 'none', padding: '10px 20px', borderRadius: 12, fontWeight: '700', fontSize: 15, cursor: 'pointer', fontFamily: "'Outfit', sans-serif", boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>Ver planos</button>
                 </div>
             </div>
