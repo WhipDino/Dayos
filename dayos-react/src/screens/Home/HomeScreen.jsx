@@ -272,10 +272,21 @@ export const HomeScreen = ({ userName = "João", initialTasks = [] }) => {
         setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
     };
 
+    const lastScrollY = useRef(0);
+    const [fabVisible, setFabVisible] = useState(true);
+
     const handleScroll = (e) => {
         const scrollTop = e.target.scrollTop;
         if (scrollTop > 10 && !scrolled) setScrolled(true);
         else if (scrollTop <= 10 && scrolled) setScrolled(false);
+
+        // FAB Scroll Logic
+        if (scrollTop > lastScrollY.current + 8) {
+            setFabVisible(false); // scrolling down
+        } else if (scrollTop < lastScrollY.current - 8) {
+            setFabVisible(true);  // scrolling up
+        }
+        lastScrollY.current = scrollTop;
     };
 
     // Auto-scroll to "AGORA"
@@ -332,14 +343,17 @@ export const HomeScreen = ({ userName = "João", initialTasks = [] }) => {
                         <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, lineHeight: 1 }}>Orbhy</span>
                         <div style={{ width: 7, height: 7, borderRadius: '50%', background: T.dawn, marginLeft: 3 }} />
                     </div>
-                    <div style={{
-                        width: 32, height: 32, borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${T.dawn}, ${T.sunrise})`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 700, color: '#FFF'
-                    }}>
+                    <button
+                        onClick={() => console.log("perfil clicado")}
+                        style={{
+                            width: 32, height: 32, borderRadius: '50%',
+                            background: '#ECEAE7', border: 'none', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 700, color: T.text3
+                        }}
+                    >
                         {userName.charAt(0).toUpperCase()}
-                    </div>
+                    </button>
                 </div>
 
                 {/* Linha 2 */}
@@ -388,7 +402,7 @@ export const HomeScreen = ({ userName = "João", initialTasks = [] }) => {
                 onScroll={handleScroll}
                 style={{
                     flex: 1, overflowY: 'auto',
-                    padding: '12px 16px 120px 16px',
+                    padding: '12px 16px 80px 16px',
                     overscrollBehavior: 'contain',
                     WebkitOverflowScrolling: 'touch',
                     display: 'flex', flexDirection: 'column', gap: 10
@@ -410,6 +424,29 @@ export const HomeScreen = ({ userName = "João", initialTasks = [] }) => {
                     </>
                 )}
             </main>
+
+            {/* FLOATING ACTION BUTTON (FAB) */}
+            <button
+                onClick={() => console.log('+ clicado')}
+                style={{
+                    position: 'fixed',
+                    bottom: 88, right: 20, zIndex: 40,
+                    width: 44, height: 44, borderRadius: '50%',
+                    background: `linear-gradient(135deg, ${T.dawn}, ${T.sunrise})`,
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 4px 12px rgba(244, 162, 97, 0.35)',
+                    opacity: fabVisible ? 1 : 0,
+                    transform: fabVisible ? 'scale(1) translateY(0)' : 'scale(0.85) translateY(8px)',
+                    transition: 'opacity 0.25s cubic-bezier(0.23, 1, 0.32, 1), transform 0.25s cubic-bezier(0.23, 1, 0.32, 1)',
+                    pointerEvents: fabVisible ? 'auto' : 'none',
+                }}
+            >
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="#FFFFFF" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+            </button>
         </div>
     );
 };
