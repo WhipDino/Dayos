@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { useScroll } from 'framer-motion';
 import HomeHeader from './HomeHeader';
 import FocusCard from './FocusCard';
 import InsightCard from './InsightCard';
+import StatBlock from './StatBlock';
+import HomeFAB from './HomeFAB';
+import NextUpCard from './NextUpCard';
 
 // Design tokens
 const T = {
@@ -30,6 +34,11 @@ const STATES = {
         secondCard: null,
         insight: 'Você tem 1h livre antes da daily. Tempo suficiente pra finalizar a proposta do Carlos.',
         progress: { done: 0, total: 5, freeTime: '2h 30min' },
+        upNext: [
+            { id: '1', title: 'Daily com o time', time: '09h00', minutesUntil: 55, duration: 30, location: 'Google Meet', iconType: 'meet' },
+            { id: '2', title: 'Review de produto', time: '10h00', minutesUntil: 115, duration: 60, location: 'Zoom', iconType: 'meet' },
+            { id: '3', title: 'Almoço com Ana', time: '12h30', minutesUntil: 265, duration: 60, location: 'Restaurante', iconType: 'location' },
+        ],
     },
     start: {
         greeting: 'Bom trabalho, João.',
@@ -56,6 +65,11 @@ const STATES = {
         },
         insight: 'Três reuniões hoje, todas de manhã. Sua tarde tá completamente livre — melhor bloco de foco do dia.',
         progress: { done: 1, total: 5, freeTime: '1h 45min' },
+        upNext: [
+            { id: '1', title: 'Review de produto', time: '10h00', minutesUntil: 45, duration: 60, location: 'Zoom', iconType: 'meet' },
+            { id: '2', title: 'Almoço com Ana', time: '12h30', minutesUntil: 155, duration: 60, location: 'Restaurante', iconType: 'location' },
+            { id: '3', title: 'Reunião com cliente Apex', time: '17h00', minutesUntil: 440, duration: 45, location: 'Google Meet', iconType: 'meet' },
+        ],
     },
     midday: {
         greeting: 'Como tá o ritmo?',
@@ -72,6 +86,11 @@ const STATES = {
         secondCard: null,
         insight: 'Você completou 3 de 5 tarefas. Tá no ritmo certo pra fechar o dia bem.',
         progress: { done: 3, total: 5, freeTime: '1h 20min' },
+        upNext: [
+            { id: '1', title: 'Reunião com cliente Apex', time: '17h00', minutesUntil: 120, duration: 45, location: 'Google Meet', iconType: 'meet' },
+            { id: '2', title: 'Daily do time', time: '18h30', minutesUntil: 210, duration: 30, location: 'Google Meet', iconType: 'meet' },
+            { id: '3', title: 'Revisão de sprint', time: '19h00', minutesUntil: 240, duration: 60, location: 'Presencial', iconType: 'people' },
+        ],
     },
     afternoon: {
         greeting: 'Boa tarde, João.',
@@ -88,6 +107,11 @@ const STATES = {
         secondCard: null,
         insight: 'Faltam 2 horas. Essa tarefa leva uns 15 min. Ainda dá pra fechar tudo hoje.',
         progress: { done: 4, total: 5, freeTime: '40min' },
+        upNext: [
+            { id: '1', title: 'Reunião com cliente Apex', time: '17h00', minutesUntil: 40, duration: 45, location: 'Google Meet', iconType: 'meet' },
+            { id: '2', title: 'Daily do time', time: '18h30', minutesUntil: 130, duration: 30, location: 'Google Meet', iconType: 'meet' },
+            { id: '3', title: 'Revisão de sprint', time: '19h00', minutesUntil: 160, duration: 60, location: 'Presencial', iconType: 'people' },
+        ],
     },
     closing: {
         greeting: 'Quase lá, João.',
@@ -104,6 +128,7 @@ const STATES = {
         secondCard: null,
         insight: 'Você concluiu 4 de 5 tarefas hoje. Adiei a planilha pra amanhã de manhã automaticamente.',
         progress: { done: 4, total: 5, freeTime: '0min' },
+        upNext: [],
     },
 };
 
@@ -137,6 +162,7 @@ export const HomeScreen = ({ userName }) => {
     });
 
     const scrollContainerRef = useRef(null);
+    const { scrollY } = useScroll({ container: scrollContainerRef });
 
     const handleFocusCardDismiss = (dismissedId) => {
         console.log('FocusCard Dismissed:', dismissedId);
@@ -156,6 +182,8 @@ export const HomeScreen = ({ userName }) => {
                 date="Terça, 4 de março"
                 userName={userName}
                 scrollContainerRef={scrollContainerRef}
+                scrollY={scrollY}
+                entered={entered}
             />
 
             <div
@@ -179,11 +207,6 @@ export const HomeScreen = ({ userName }) => {
                             {s}
                         </button>
                     ))}
-                </div>
-
-                {/* ZONA 1 - SAUDAÇÃO */}
-                <div style={{ ...getAnim(80), fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 600, color: '#2D2D2D', padding: '8px 20px 20px' }}>
-                    {greeting}
                 </div>
 
                 {/* ZONA 2 - FOCUS CARDS */}
@@ -210,12 +233,25 @@ export const HomeScreen = ({ userName }) => {
                 </div>
 
                 {/* ZONA 4 - PROGRESSO */}
-                <div key={`prog-${dayState}`} style={{ ...getAnim(360), animation: `swapFadeIn 0.4s ${T.easing} both`, padding: '14px 20px 0', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B6B6B' }}>
-                    {data.progress.done} de {data.progress.total} tarefas concluídas
-                    <span style={{ color: '#ECEAE7', margin: '0 8px' }}>·</span>
-                    {data.progress.freeTime} livres hoje
-                </div>
+                <StatBlock
+                    done={data.progress.done}
+                    total={data.progress.total}
+                    freeTime={data.freeTime || data.progress.freeTime}
+                    dayState={dayState}
+                    entered={entered}
+                    enterDelay={240}
+                />
+                <NextUpCard
+                    events={data.upNext}
+                    entered={entered}
+                    enterDelay={320}
+                />
             </div>
+
+            <HomeFAB
+                scrollY={scrollY}
+                onPress={() => console.log('Home FAB Pressed')}
+            />
         </div>
     );
 };
