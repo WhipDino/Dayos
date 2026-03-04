@@ -320,7 +320,7 @@ export const HomeScreen = ({ userName = "João", initialTasks = [] }) => {
             {/* HEADER */}
             <header style={{
                 position: 'sticky', top: 0, zIndex: 10,
-                padding: 'calc(safe-area-inset-top + 12px) 16px 12px',
+                padding: 'calc(env(safe-area-inset-top, 24px) + 16px) 16px 12px',
                 backgroundColor: 'rgb(250, 248, 245)',
                 borderBottom: scrolled ? `1px solid ${T.border}` : '1px solid transparent',
                 transition: 'border-bottom 0.2s ease',
@@ -329,8 +329,8 @@ export const HomeScreen = ({ userName = "João", initialTasks = [] }) => {
                 {/* Linha 1 */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 700, color: T.text, lineHeight: 1 }}>Orbhy</span>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: T.dawn, marginLeft: 2 }} />
+                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, lineHeight: 1 }}>Orbhy</span>
+                        <div style={{ width: 7, height: 7, borderRadius: '50%', background: T.dawn, marginLeft: 3 }} />
                     </div>
                     <div style={{
                         width: 32, height: 32, borderRadius: '50%',
