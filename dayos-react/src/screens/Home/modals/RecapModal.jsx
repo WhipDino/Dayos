@@ -294,16 +294,12 @@ export const RecapModal = ({ isOpen, onClose, userName = "João" }) => {
                 WebkitOverflowScrolling: 'auto'
             }}>
 
-                {/* Scrollable Container */}
-                <div ref={scrollRef} style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    display: 'flex', flexDirection: 'column',
-                    padding: '20px 20px 20px 20px',
-                    overscrollBehavior: 'contain',
-                    WebkitOverflowScrolling: 'auto'
+                {/* Fixed Header & Orb Area */}
+                <div style={{
+                    flexShrink: 0,
+                    padding: '20px 20px 0 20px',
+                    display: 'flex', flexDirection: 'column'
                 }}>
-
                     {/* Header: Logo Orbhy + Fechar */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -340,9 +336,18 @@ export const RecapModal = ({ isOpen, onClose, userName = "João" }) => {
                     <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
                         <AIOrb state={orbState} size={140} />
                     </div>
+                </div>
 
-                    {/* Chat Messages */}
-                    <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12, padding: '0 4px', flex: 1 }}>
+                {/* Scrollable Chat Container */}
+                <div ref={scrollRef} style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    display: 'flex', flexDirection: 'column',
+                    padding: '20px 20px 20px 20px',
+                    overscrollBehavior: 'contain',
+                    WebkitOverflowScrolling: 'touch'
+                }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 4px', flex: 1 }}>
                         {messages.map((msg) => (
                             msg.role === 'ai' ? <AIBubble key={msg.id} text={msg.text} /> : <UserBubble key={msg.id} text={msg.text} />
                         ))}
