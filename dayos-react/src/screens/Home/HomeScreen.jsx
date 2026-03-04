@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import HomeHeader from './HomeHeader';
 import FocusCard from './FocusCard';
+import InsightCard from './InsightCard';
 
 // Design tokens
 const T = {
@@ -199,18 +200,13 @@ export const HomeScreen = ({ userName }) => {
                 </div>
 
                 {/* ZONA 3 - INSIGHT */}
-                <div key={`insight-${dayState}`} style={{ ...getAnim(280), animation: `swapFadeIn 0.4s ${T.easing} both` }}>
-                    <div style={{ margin: '16px 20px 0', background: '#F5F3F0', borderRadius: 16, padding: '16px', borderLeft: `3px solid ${T.dawn}` }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
-                            <span style={{ color: T.dawn, fontSize: 13 }}>✦</span>
-                            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: T.dawn, letterSpacing: '0.04em' }}>
-                                Orbhy
-                            </span>
-                        </div>
-                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#2D2D2D', lineHeight: 1.55 }}>
-                            "{data.insight}"
-                        </div>
-                    </div>
+                <div style={{ position: 'relative', zIndex: 5 }}>
+                    <InsightCard
+                        insight={data.insight}
+                        dayState={dayState}
+                        entered={entered}
+                        enterDelay={220}
+                    />
                 </div>
 
                 {/* ZONA 4 - PROGRESSO */}
