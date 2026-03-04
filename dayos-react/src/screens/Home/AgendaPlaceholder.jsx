@@ -48,6 +48,20 @@ export const AgendaPlaceholder = () => {
             }}>
                 Em breve
             </h2>
+
+            {/* STATIC FAB ON AGENDA */}
+            <div
+                onClick={() => console.log('+ clicado')}
+                style={{
+                    position: 'fixed', bottom: 88, right: 20, width: 44, height: 44, borderRadius: '50%',
+                    background: `linear-gradient(135deg, ${T.dawn}, ${T.sunrise})`,
+                    boxShadow: '0 4px 12px rgba(244, 162, 97, 0.35)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10,
+                    WebkitTapHighlightColor: 'transparent'
+                }}
+            >
+                <span style={{ color: '#FFFFFF', fontSize: 24, lineHeight: 1, marginTop: -2, fontWeight: 300 }}>+</span>
+            </div>
         </div>
     );
 };

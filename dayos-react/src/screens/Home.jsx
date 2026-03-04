@@ -11,15 +11,6 @@ export default function MainApp({ userName = 'João' }) {
     const [showBriefing, setShowBriefing] = useState(false);
     const [showRecap, setShowRecap] = useState(false);
 
-    // Mock generic tasks to test the timeline with the new UI categories
-    const mockTasks = [
-        { id: '1', type: 'meeting', title: 'Daily com o time', time: '09:30', duration: '30 min', urgent: false, isPast: true },
-        { id: '2', type: 'free', title: 'Bloco livre', duration: '1h', isPast: true },
-        { id: '3', type: 'meeting', title: 'Sync de Design', time: '14:00', duration: '1h', participants: 'Com Ana e Marcos', urgent: false, isPast: false },
-        { id: '4', type: 'email', title: 'Proposta do Carlos', context: 'Responder urgente', sender: 'C', urgent: true, isPast: false },
-        { id: '6', type: 'task', title: 'Revisar PR #123', subtitle: 'Revisão final', urgent: false, isPast: false },
-        { id: '7', type: 'task', title: 'Ligar para o dentista', subtitle: 'Confirmar horário', urgent: true, isPast: false },
-    ];
 
     const [activePage, setActivePage] = useState('home');
 
@@ -30,7 +21,7 @@ export default function MainApp({ userName = 'João' }) {
                 return <AgendaPlaceholder />;
             case 'home':
             default:
-                return <HomeScreen userName={userName} initialTasks={mockTasks} />;
+                return <HomeScreen userName={userName} />;
         }
     };
 
@@ -55,7 +46,7 @@ export default function MainApp({ userName = 'João' }) {
             </div>
 
             {/* The Ritual Modals */}
-            <BriefingModal isOpen={showBriefing} onClose={() => setShowBriefing(false)} userName={userName} tasks={mockTasks} />
+            <BriefingModal isOpen={showBriefing} onClose={() => setShowBriefing(false)} userName={userName} tasks={[]} />
             <RecapModal isOpen={showRecap} onClose={() => setShowRecap(false)} userName={userName} />
         </div>
     );

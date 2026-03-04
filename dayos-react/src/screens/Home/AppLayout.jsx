@@ -18,10 +18,7 @@ export const AppLayout = ({ activePage, onNavigate, children }) => {
                 flex: 1,
                 minHeight: 0,
                 display: 'flex', flexDirection: 'column',
-                overflowY: 'auto',
-                overscrollBehavior: 'contain',
-                WebkitOverflowScrolling: 'touch',
-                paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+                position: 'relative'
             }}>
                 {children}
             </main>

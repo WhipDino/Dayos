@@ -1,452 +1,329 @@
 import { useState, useEffect, useRef } from 'react';
-import { T, triggerHaptic } from './theme';
+import HomeHeader from './HomeHeader';
 
-const CircleCheckIcon = () => (
-    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12" />
-    </svg>
-);
-
-const CalendarIcon = () => (
-    <svg viewBox="0 0 24 24" width="20" height="20" stroke={T.dusk} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-);
-
-const CheckCircleOutlineIcon = ({ color }) => (
-    <svg viewBox="0 0 24 24" width="20" height="20" stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-        <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-);
-
-const ClockIcon = () => (
-    <svg viewBox="0 0 24 24" width="20" height="20" stroke={T.success} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-    </svg>
-);
-
-const EmptySunIcon = () => (
-    <svg viewBox="0 0 24 24" width="64" height="64" stroke={T.dawn} strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="5" />
-        <line x1="12" y1="1" x2="12" y2="3" />
-        <line x1="12" y1="21" x2="12" y2="23" />
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-        <line x1="1" y1="12" x2="3" y2="12" />
-        <line x1="21" y1="12" x2="23" y2="12" />
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-    </svg>
-);
-
-
-// Unified Completion Button
-const CheckButton = ({ isChecked, onToggle }) => {
-    return (
-        <button
-            onClick={onToggle}
-            style={{
-                width: 28, height: 28, borderRadius: '50%',
-                border: isChecked ? `2px solid ${T.success}` : `2px solid ${T.border}`,
-                background: isChecked ? T.success : 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'all 200ms ease',
-                flexShrink: 0
-            }}
-        >
-            <div style={{
-                color: '#FFF',
-                opacity: isChecked ? 1 : 0,
-                transform: isChecked ? 'scale(1)' : 'scale(0)',
-                transition: `all 250ms ${T.easeBounce}`
-            }}>
-                <CircleCheckIcon />
-            </div>
-        </button>
-    );
+// Design tokens
+const T = {
+    background: '#FAF8F5',
+    surface: '#FFFFFF',
+    dawn: '#F4A261',
+    sunrise: '#E76F51',
+    text3: '#9B9790',
+    border: '#ECEAE7',
+    easing: 'cubic-bezier(0.23, 1, 0.32, 1)',
 };
 
-// 1. Meeting Card
-export const MeetingCard = ({ item, isPast, index }) => (
-    <div style={{
-        background: T.surface, border: `1px solid ${T.border}`, borderRadius: 20, padding: 16,
-        boxShadow: T.shadowCard, display: 'flex', gap: 12, alignItems: 'flex-start',
-        opacity: isPast ? 0.4 : 1, transition: `all 500ms ${T.easeStandard}`,
-        transitionDelay: `${index * 60}ms`,
-        animation: 'fadeInUpCard 500ms cubic-bezier(0.23, 1, 0.32, 1) both'
-    }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <CalendarIcon />
-        </div>
-        <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: T.text, textDecoration: isPast ? 'line-through' : 'none' }}>
-                {item.title}
-            </div>
-            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: T.text3, marginTop: 4 }}>
-                {item.time} · {item.duration}
-            </div>
-            {item.participants && (
-                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: T.text3, marginTop: 2 }}>
-                    {item.participants}
-                </div>
-            )}
-        </div>
-    </div>
-);
-
-// 2. Task Card
-export const TaskCard = ({ item, isPast, index, onComplete }) => {
-    const isUrgent = item.urgent;
-    const color = isUrgent ? T.sunrise : T.dawn;
-    const bgColor = isUrgent ? 'rgba(231,111,81,0.1)' : 'rgba(244,162,97,0.1)';
-
-    return (
-        <div style={{
-            background: T.surface, border: `1px solid ${T.border}`, borderRadius: 20, padding: 16,
-            boxShadow: T.shadowCard, display: 'flex', gap: 12, alignItems: 'center',
-            opacity: (isPast || item.completed) ? 0.4 : 1, transition: `all 500ms ${T.easeStandard}`,
-            transitionDelay: `${index * 60}ms`,
-            animation: 'fadeInUpCard 500ms cubic-bezier(0.23, 1, 0.32, 1) both'
-        }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <CheckCircleOutlineIcon color={color} />
-            </div>
-            <div style={{ flex: 1 }}>
-                <div style={{
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: T.text,
-                    textDecoration: item.completed ? 'line-through' : 'none'
-                }}>
-                    {item.title}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: T.text3 }}>{item.subtitle}</div>
-                    {isUrgent && (
-                        <div style={{
-                            background: 'rgba(231,111,81,0.08)', color: T.sunrise,
-                            fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500,
-                            padding: '2px 8px', borderRadius: 999
-                        }}>
-                            Hoje
-                        </div>
-                    )}
-                </div>
-            </div>
-            <CheckButton isChecked={item.completed} onToggle={() => onComplete(item.id)} />
-        </div>
-    );
+const STATES = {
+    early: {
+        greeting: 'Bom dia, João.',
+        focusCard: {
+            type: 'task',
+            urgency: 'urgent',
+            title: 'Enviar proposta pro Carlos',
+            origin: '📧 Email de Carlos · ontem 18h',
+        },
+        secondCard: null,
+        insight: 'Você tem 1h livre antes da daily. Tempo suficiente pra finalizar a proposta do Carlos.',
+        progress: { done: 0, total: 5, freeTime: '2h 30min' },
+    },
+    start: {
+        greeting: 'Bom trabalho, João.',
+        focusCard: {
+            type: 'meeting',
+            urgency: 'soon',
+            title: 'Daily com o time',
+            origin: '📅 09:30 · 30 min · Google Meet',
+            minutesUntil: 12,
+        },
+        secondCard: {
+            type: 'task',
+            urgency: 'urgent',
+            title: 'Revisar deck antes da daily',
+            origin: '📧 Email do gestor · hoje 08h',
+        },
+        insight: 'Três reuniões hoje, todas de manhã. Sua tarde tá completamente livre — melhor bloco de foco do dia.',
+        progress: { done: 1, total: 5, freeTime: '1h 45min' },
+    },
+    midday: {
+        greeting: 'Como tá o ritmo?',
+        focusCard: {
+            type: 'task',
+            urgency: 'urgent',
+            title: 'Responder proposta do cliente',
+            origin: '📧 Email de Ana · hoje 10h',
+        },
+        secondCard: null,
+        insight: 'Você completou 3 de 5 tarefas. Tá no ritmo certo pra fechar o dia bem.',
+        progress: { done: 3, total: 5, freeTime: '1h 20min' },
+    },
+    afternoon: {
+        greeting: 'Boa tarde, João.',
+        focusCard: {
+            type: 'task',
+            urgency: 'today',
+            title: 'Ligar pro cliente antes das 17h',
+            origin: '📝 Tarefa manual · adicionada hoje',
+        },
+        secondCard: null,
+        insight: 'Faltam 2 horas. Essa tarefa leva uns 15 min. Ainda dá pra fechar tudo hoje.',
+        progress: { done: 4, total: 5, freeTime: '40min' },
+    },
+    closing: {
+        greeting: 'Quase lá, João.',
+        focusCard: {
+            type: 'task',
+            urgency: 'pending',
+            title: 'Atualizar planilha de métricas',
+            origin: '📝 Ficou pendente desde ontem',
+        },
+        secondCard: null,
+        insight: 'Você concluiu 4 de 5 tarefas hoje. Adiei a planilha pra amanhã de manhã automaticamente.',
+        progress: { done: 4, total: 5, freeTime: '0min' },
+    },
 };
 
-
-// 3. Email Card
-export const EmailCard = ({ item, isPast, index, onComplete }) => {
-    // Generate avatar color based on initial
-    const getAvatarColor = (name) => {
-        const initial = name ? name.charAt(0).toUpperCase() : 'A';
-        if (['A', 'B', 'C', 'D', 'E', 'F'].includes(initial)) return T.sunrise;
-        if (['G', 'H', 'I', 'J', 'K', 'L', 'M'].includes(initial)) return T.dusk;
-        return T.dawn;
-    };
-
-    const senderName = item.sender || "Email";
-    const avatarColor = getAvatarColor(senderName);
-
-    return (
-        <div style={{
-            background: T.surface, border: `1px solid ${T.border}`, borderRadius: 20, padding: 16,
-            boxShadow: T.shadowCard, display: 'flex', gap: 12, alignItems: 'center',
-            opacity: (isPast || item.completed) ? 0.4 : 1, transition: `all 500ms ${T.easeStandard}`,
-            transitionDelay: `${index * 60}ms`,
-            animation: 'fadeInUpCard 500ms cubic-bezier(0.23, 1, 0.32, 1) both'
-        }}>
-            <div style={{
-                width: 40, height: 40, borderRadius: '50%', background: avatarColor,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                fontFamily: "'Outfit', sans-serif", fontSize: 15, fontWeight: 700, color: '#FFF'
-            }}>
-                {senderName.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ flex: 1 }}>
-                <div style={{
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: T.text,
-                    textDecoration: item.completed ? 'line-through' : 'none'
-                }}>
-                    {item.title}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: T.text3 }}>{senderName} · {item.context || "Email"}</div>
-                    {!item.completed && (
-                        <div style={{
-                            background: 'rgba(231,111,81,0.08)', color: T.sunrise,
-                            fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 500,
-                            padding: '2px 8px', borderRadius: 999
-                        }}>
-                            responder
-                        </div>
-                    )}
-                </div>
-            </div>
-            <CheckButton isChecked={item.completed} onToggle={() => onComplete(item.id)} />
-        </div>
-    );
+const getStateFromHour = (hour) => {
+    if (hour >= 6 && hour < 9) return 'early';
+    if (hour >= 9 && hour < 11) return 'start';
+    if (hour >= 11 && hour < 14) return 'midday';
+    if (hour >= 14 && hour < 18) return 'afternoon';
+    return 'closing';
 };
 
-// 4. Free Block
-export const FreeBlock = ({ item, index }) => (
-    <div style={{
-        background: T.surface2, border: `1px dashed ${T.border}`, borderRadius: 20, padding: '14px 16px',
-        display: 'flex', gap: 12, alignItems: 'center',
-        transitionDelay: `${index * 60}ms`,
-        animation: 'fadeInUpCard 500ms cubic-bezier(0.23, 1, 0.32, 1) both'
-    }}>
-        <div style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(52,211,153,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <ClockIcon />
-        </div>
-        <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: T.text2 }}>
-                {item.duration} livre
-            </div>
-            <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: item.suggestion ? T.dawn : T.text3, marginTop: 2 }}>
-                {item.suggestion || "Tempo livre — aproveite 😎"}
-            </div>
-        </div>
-    </div>
-);
+export const HomeScreen = ({ userName }) => {
+    // Current State
+    const [dayState, setDayState] = useState(getStateFromHour(new Date().getHours()));
+    const data = STATES[dayState];
 
+    // Replace João with userName correctly for realistic behavior
+    const greeting = data.greeting.replace('João', userName || 'João');
 
-const NowIndicator = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0' }}>
-        <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: T.dawn }}>
-            AGORA
-        </div>
-        <div style={{ flex: 1, height: 1.5, background: `linear-gradient(90deg, ${T.dawn}, transparent)` }} />
-    </div>
-);
-
-// Empty State
-const EmptyState = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, marginTop: 60, animation: 'fadeIn 500ms ease forwards' }}>
-        <EmptySunIcon />
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 600, color: T.text, marginTop: 16, marginBottom: 8 }}>
-            Seu dia tá em branco
-        </h3>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: T.text2, textAlign: 'center', maxWidth: 280, lineHeight: 1.5, margin: 0 }}>
-            Conecte sua agenda ou crie tarefas no recap da noite
-        </p>
-        <button style={{
-            marginTop: 20, background: T.surface, border: `1px solid ${T.border}`, borderRadius: 16, padding: '12px 24px',
-            fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: T.dawn, cursor: 'pointer',
-            boxShadow: T.shadowCard
-        }}>
-            Conectar agenda
-        </button>
-    </div>
-);
-
-
-// -------------------------------------------------------------
-// MAIN HOME SCREEN
-// -------------------------------------------------------------
-export const HomeScreen = ({ userName = "João", initialTasks = [] }) => {
-    const [scrolled, setScrolled] = useState(false);
-    const [tasks, setTasks] = useState(initialTasks);
-    const nowRef = useRef(null);
-
-    // Initial unified data prep and grouping
-    const summary = {
-        meetings: tasks.filter(t => t.type === 'meeting' && !t.completed).length,
-        tasks: tasks.filter(t => (t.type === 'task' || t.type === 'email') && !t.completed).length,
-        freeTime: "1h", // Mocked sum
-    };
-
-    const pastItems = tasks.filter(t => t.isPast);
-    const futureItems = tasks.filter(t => !t.isPast);
-
-    const handleComplete = (id) => {
-        triggerHaptic('success');
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-    };
-
-    const lastScrollY = useRef(0);
-    const [fabVisible, setFabVisible] = useState(true);
-
-    const handleScroll = (e) => {
-        const scrollTop = e.target.scrollTop;
-        if (scrollTop > 10 && !scrolled) setScrolled(true);
-        else if (scrollTop <= 10 && scrolled) setScrolled(false);
-
-        // FAB Scroll Logic
-        if (scrollTop > lastScrollY.current + 8) {
-            setFabVisible(false); // scrolling down
-        } else if (scrollTop < lastScrollY.current - 8) {
-            setFabVisible(true);  // scrolling up
-        }
-        lastScrollY.current = scrollTop;
-    };
-
-    // Auto-scroll to "AGORA"
+    // Animations
+    const [entered, setEntered] = useState(false);
     useEffect(() => {
-        if (nowRef.current && tasks.length > 0) {
-            setTimeout(() => {
-                nowRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 600); // Wait for enter animations
-        }
-    }, [tasks.length]);
+        const t = setTimeout(() => setEntered(true), 50);
+        return () => clearTimeout(t);
+    }, []);
 
-    const renderCard = (item, index, isPast) => {
-        switch (item.type) {
-            case 'meeting': return <MeetingCard key={item.id} item={item} index={index} isPast={isPast} />;
-            case 'email': return <EmailCard key={item.id} item={item} index={index} isPast={isPast} onComplete={handleComplete} />;
-            case 'free': return <FreeBlock key={item.id} item={item} index={index} />;
-            case 'task':
-            default: return <TaskCard key={item.id} item={item} index={index} isPast={isPast} onComplete={handleComplete} />;
+    const getAnim = (delay) => ({
+        opacity: entered ? 1 : 0,
+        transform: entered ? 'translateY(0)' : 'translateY(16px)',
+        transition: `all 0.65s ${T.easing} ${delay}ms`
+    });
+
+    const scrollContainerRef = useRef(null);
+
+    // Swipe logic
+    const [touchStart, setTouchStart] = useState(null);
+    const [activeCardIndex, setActiveCardIndex] = useState(0);
+
+    // Refresh card states on state change
+    const [dimosProps, setDismosProps] = useState({});
+    const [dismissedCards, setDismissedCards] = useState({});
+
+    useEffect(() => {
+        setDismissedCards({});
+        setDismosProps({});
+        setActiveCardIndex(0);
+    }, [dayState]);
+
+    const handleTouchStart = (e) => setTouchStart(e.touches[0].clientX);
+    const handleTouchEnd = (e) => {
+        if (!touchStart || !data.secondCard) return;
+        const touchEnd = e.changedTouches[0].clientX;
+        const diff = touchStart - touchEnd;
+        if (diff > 60) setActiveCardIndex(1);
+        if (diff < -60) setActiveCardIndex(0);
+        setTouchStart(null);
+    };
+
+    const handleFeitoClick = (index) => {
+        setDismosProps(prev => ({ ...prev, [index]: true }));
+        setTimeout(() => {
+            setDismissedCards(prev => ({ ...prev, [index]: true }));
+            if (index === 0 && data.secondCard) {
+                setActiveCardIndex(0);
+            }
+        }, 300);
+    };
+
+    const badgeStyle = (urgency) => {
+        switch (urgency) {
+            case 'urgent': return { background: 'rgba(231,111,81,0.12)', color: '#E76F51' };
+            case 'soon': return { background: 'rgba(99,102,241,0.12)', color: '#6366F1' };
+            case 'today': return { background: 'rgba(244,162,97,0.12)', color: '#F4A261' };
+            case 'pending': return { background: 'rgba(107,107,107,0.10)', color: '#6B6B6B' };
+            default: return { background: 'transparent', color: '#000' };
         }
     };
 
+    const badgeText = (card) => {
+        switch (card.urgency) {
+            case 'urgent': return 'URGENTE';
+            case 'soon': return `EM ${card.minutesUntil} MIN`;
+            case 'today': return 'HOJE';
+            case 'pending': return 'PENDENTE';
+            default: return '';
+        }
+    };
+
+    const renderCard = (card, index) => {
+        const isClosing = dimosProps[index];
+        const isActuallyDismissed = dismissedCards[index];
+        if (isActuallyDismissed) return null;
+
+        return (
+            <div style={{
+                flexShrink: 0,
+                width: (!dismissedCards[0] && data.secondCard) ? '88%' : '100%',
+                background: '#FFFFFF',
+                borderRadius: 20,
+                padding: '20px',
+                boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+                overflow: 'hidden',
+                // Animate dismiss
+                opacity: isClosing ? 0 : 1,
+                transform: isClosing ? 'scale(0.94)' : 'scale(1)',
+                transition: `all 0.3s ${T.easing}`,
+                margin: 0,
+                border: 'none',
+                height: 'auto'
+            }}>
+                <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.06em',
+                    padding: '4px 10px', borderRadius: 20, marginBottom: 12,
+                    ...badgeStyle(card.urgency)
+                }}>
+                    {card.type === 'meeting' ? '🟣' : '🔴'} {badgeText(card)}
+                </div>
+
+                <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 700, color: '#2D2D2D', lineHeight: 1.25, marginBottom: 10 }}>
+                    {card.title}
+                </div>
+
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9B9790', marginBottom: 20 }}>
+                    {card.origin}
+                </div>
+
+                <div style={{ height: 1, background: '#ECEAE7', marginBottom: 16 }} />
+
+                <div style={{ display: 'flex', gap: 10 }}>
+                    <button style={{
+                        flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: '#F5F3F0',
+                        color: '#6B6B6B', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, cursor: 'pointer',
+                        outline: 'none', WebkitTapHighlightColor: 'transparent'
+                    }}>
+                        {card.type === 'meeting' ? 'Ver agenda' : 'Adiar'}
+                    </button>
+
+                    <button
+                        onClick={() => handleFeitoClick(index)}
+                        style={{
+                            flex: 1, padding: '12px', borderRadius: 12, border: 'none',
+                            background: `linear-gradient(135deg, ${T.dawn}, ${T.sunrise})`,
+                            color: '#FFFFFF', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                            outline: 'none', WebkitTapHighlightColor: 'transparent'
+                        }}
+                    >
+                        {card.type === 'meeting' ? 'Entrar' : 'Feito ✓'}
+                    </button>
+                </div>
+            </div>
+        );
+    };
 
     return (
-        <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', flexDirection: 'column',
-            maxWidth: 420, margin: '0 auto',
-            backgroundColor: 'rgb(250, 248, 245)',
-            overscrollBehavior: 'contain'
-        }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.background }}>
             <style>{`
-                @keyframes fadeInUpCard {
-                    from { opacity: 0; transform: translateY(12px); }
+                @keyframes swapFadeIn {
+                    from { opacity: 0; transform: translateY(8px); }
                     to { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
                 }
             `}</style>
 
-            {/* HEADER */}
-            <header style={{
-                position: 'sticky', top: 0, zIndex: 10,
-                padding: 'calc(env(safe-area-inset-top, 24px) + 16px) 16px 12px',
-                backgroundColor: 'rgb(250, 248, 245)',
-                borderBottom: scrolled ? `1px solid ${T.border}` : '1px solid transparent',
-                transition: 'border-bottom 0.2s ease',
-                animation: 'fadeInUpCard 400ms ease-out both'
-            }}>
-                {/* Linha 1 */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 24, fontWeight: 700, color: T.text, lineHeight: 1 }}>Orbhy</span>
-                        <div style={{ width: 7, height: 7, borderRadius: '50%', background: T.dawn, marginLeft: 3 }} />
-                    </div>
-                    <button
-                        onClick={() => console.log("perfil clicado")}
-                        style={{
-                            width: 32, height: 32, borderRadius: '50%',
-                            background: '#ECEAE7', border: 'none', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontFamily: "'Outfit', sans-serif", fontSize: 13, fontWeight: 700, color: T.text3
-                        }}
-                    >
-                        {userName.charAt(0).toUpperCase()}
-                    </button>
+            <HomeHeader
+                greeting={greeting}
+                date="Terça, 4 de março"
+                userName={userName}
+                scrollContainerRef={scrollContainerRef}
+            />
+
+            <div
+                ref={scrollContainerRef}
+                style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingBottom: 100, WebkitOverflowScrolling: 'touch' }}
+            >
+                {/* DEBUG SELECTOR */}
+                <div style={{ display: 'flex', gap: 6, padding: '4px 20px 12px', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+                    {['early', 'start', 'midday', 'afternoon', 'closing'].map(s => (
+                        <button
+                            key={s}
+                            onClick={() => setDayState(s)}
+                            style={{
+                                fontSize: 10, padding: '3px 10px', borderRadius: 20, border: '1px solid #ECEAE7',
+                                background: dayState === s ? '#F4A261' : '#FFFFFF',
+                                color: dayState === s ? '#FFFFFF' : '#9B9790',
+                                whiteSpace: 'nowrap', cursor: 'pointer', transition: 'all 0.2s ease',
+                                fontFamily: "'DM Sans', sans-serif", outline: 'none', WebkitTapHighlightColor: 'transparent'
+                            }}
+                        >
+                            {s}
+                        </button>
+                    ))}
                 </div>
 
-                {/* Linha 2 */}
-                <div style={{ marginTop: 16 }}>
-                    <h2 style={{ margin: 0, fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                        <span style={{ color: T.text }}>Bom dia,&nbsp;</span>
-                        <span style={{
-                            background: `linear-gradient(90deg, ${T.dawn}, ${T.sunrise})`,
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text'
-                        }}>{userName}</span>
-                    </h2>
+                {/* ZONA 1 - SAUDAÇÃO */}
+                <div style={{ ...getAnim(80), fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 600, color: '#2D2D2D', padding: '8px 20px 20px' }}>
+                    {greeting}
+                </div>
 
-                    {(summary.meetings > 0 || summary.tasks > 0) && (
-                        <div style={{
-                            marginTop: 6, background: T.surface2, borderRadius: 12, padding: '8px 14px',
-                            display: 'inline-flex', alignItems: 'center', gap: 6,
-                            fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, color: T.text2
-                        }}>
-                            {summary.meetings > 0 && (
-                                <>
-                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: T.dusk }} />
-                                    <span>{summary.meetings} reuniões</span>
-                                </>
-                            )}
-                            {(summary.meetings > 0 && summary.tasks > 0) && <span style={{ opacity: 0.5 }}>·</span>}
-                            {summary.tasks > 0 && (
-                                <>
-                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: T.dawn }} />
-                                    <span>{summary.tasks} tarefas</span>
-                                </>
-                            )}
-                            {(summary.tasks > 0) && <span style={{ opacity: 0.5 }}>·</span>}
-                            <>
-                                <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: T.success }} />
-                                <span>{summary.freeTime} livre</span>
-                            </>
+                {/* ZONA 2 - FOCUS CARDS */}
+                <div key={dayState} style={{ animation: `swapFadeIn 0.4s ${T.easing} both`, ...getAnim(180) }}>
+                    <div style={{ overflow: 'hidden', padding: '0 20px' }}>
+                        <div
+                            onTouchStart={handleTouchStart}
+                            onTouchEnd={handleTouchEnd}
+                            style={{
+                                display: 'flex', gap: 12,
+                                transform: `translateX(calc(-${activeCardIndex} * (88% + 12px)))`,
+                                transition: `transform 0.4s ${T.easing}`
+                            }}
+                        >
+                            {data.focusCard && renderCard(data.focusCard, 0)}
+                            {data.secondCard && renderCard(data.secondCard, 1)}
+                        </div>
+                    </div>
+
+                    {/* DOTS DE SWIPE */}
+                    {data.secondCard && !dismissedCards[0] && !dismissedCards[1] && (
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 12 }}>
+                            <div style={{ width: 6, height: 6, borderRadius: '50%', background: activeCardIndex === 0 ? '#F4A261' : '#ECEAE7', transition: 'background 0.2s ease' }} />
+                            <div style={{ width: 6, height: 6, borderRadius: '50%', background: activeCardIndex === 1 ? '#F4A261' : '#ECEAE7', transition: 'background 0.2s ease' }} />
                         </div>
                     )}
                 </div>
-            </header>
 
-            {/* TIMELINE BODY */}
-            <main
-                onScroll={handleScroll}
-                style={{
-                    flex: 1, overflowY: 'auto',
-                    padding: '12px 16px 80px 16px',
-                    overscrollBehavior: 'contain',
-                    WebkitOverflowScrolling: 'touch',
-                    display: 'flex', flexDirection: 'column', gap: 10
-                }}
-            >
-                {tasks.length === 0 ? (
-                    <EmptyState />
-                ) : (
-                    <>
-                        {pastItems.map((item, i) => renderCard(item, i, true))}
+                {/* ZONA 3 - INSIGHT */}
+                <div key={`insight-${dayState}`} style={{ ...getAnim(280), animation: `swapFadeIn 0.4s ${T.easing} both` }}>
+                    <div style={{ margin: '16px 20px 0', background: '#F5F3F0', borderRadius: 16, padding: '16px', borderLeft: `3px solid ${T.dawn}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                            <span style={{ color: T.dawn, fontSize: 13 }}>✦</span>
+                            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 600, color: T.dawn, letterSpacing: '0.04em' }}>
+                                Orbhy
+                            </span>
+                        </div>
+                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: '#2D2D2D', lineHeight: 1.55 }}>
+                            "{data.insight}"
+                        </div>
+                    </div>
+                </div>
 
-                        {(pastItems.length > 0 || futureItems.length > 0) && (
-                            <div ref={nowRef} style={{ scrollMarginTop: 140 }}>
-                                <NowIndicator />
-                            </div>
-                        )}
-
-                        {futureItems.map((item, i) => renderCard(item, pastItems.length + i, false))}
-                    </>
-                )}
-            </main>
-
-            {/* FLOATING ACTION BUTTON (FAB) */}
-            <button
-                onClick={() => console.log('+ clicado')}
-                style={{
-                    position: 'fixed',
-                    bottom: 88, right: 20, zIndex: 40,
-                    width: 44, height: 44, borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${T.dawn}, ${T.sunrise})`,
-                    border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 4px 12px rgba(244, 162, 97, 0.35)',
-                    opacity: fabVisible ? 1 : 0,
-                    transform: fabVisible ? 'scale(1) translateY(0)' : 'scale(0.85) translateY(8px)',
-                    transition: 'opacity 0.25s cubic-bezier(0.23, 1, 0.32, 1), transform 0.25s cubic-bezier(0.23, 1, 0.32, 1)',
-                    pointerEvents: fabVisible ? 'auto' : 'none',
-                }}
-            >
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="#FFFFFF" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-            </button>
+                {/* ZONA 4 - PROGRESSO */}
+                <div key={`prog-${dayState}`} style={{ ...getAnim(360), animation: `swapFadeIn 0.4s ${T.easing} both`, padding: '14px 20px 0', fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#6B6B6B' }}>
+                    {data.progress.done} de {data.progress.total} tarefas concluídas
+                    <span style={{ color: '#ECEAE7', margin: '0 8px' }}>·</span>
+                    {data.progress.freeTime} livres hoje
+                </div>
+            </div>
         </div>
     );
 };
