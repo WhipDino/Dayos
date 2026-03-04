@@ -7,6 +7,7 @@ import Integrations from './screens/Integrations'
 import RoutineChat from './screens/RoutineChat'
 import RecapTime from './screens/RecapTime'
 import ReadyScreen from './screens/ReadyScreen'
+import Home from './screens/Home'
 import './index.css'
 
 function App() {
@@ -95,9 +96,13 @@ function App() {
       <ReadyScreen
         userName={userName || 'Usuário'}
         recapTime={recapTime}
-        onContinue={() => alert('🎉 Onboarding completo! Indo para o Morning Briefing...')}
+        onContinue={() => setScreen('home')}
       />
     )
+  }
+
+  if (screen === 'home') {
+    return <Home userName={userName || 'João'} />
   }
 
   return null
